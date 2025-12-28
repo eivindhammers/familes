@@ -20,7 +20,6 @@
     const { useState, useEffect } = React;
 
     // Firebase Configuration
-    // REPLACE THESE WITH YOUR FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyBJAev8Jn2Ywh_ms57iRfFkZxXVRQu6Hlk",
       authDomain: "familes-98f43.firebaseapp.com",
@@ -64,7 +63,62 @@
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState('');
       const [showStreakMessage, setShowStreakMessage] = useState(false);
+      const [suggestions, setSuggestions] = useState([]);
+      const [isSearching, setIsSearching] = useState(false);
+      const [showSuggestions, setShowSuggestions] = useState(false);
 
+      // Add this helper for debouncing
+      useEffect(() => {
+        const timeoutId = setTimeout(() => {
+          if (newBook.title && newBook.title.length > 2 && showSuggestions) {
+            searchGoogleBooks(newBook.title);
+          } else if (!newBook.title) {
+            setSuggestions([]);
+          }
+        }, 500); // Wait 500ms after typing
+      
+        return () => clearTimeout(timeoutId);
+      }, [newBook.title, showSuggestions]);
+      
+      const searchGoogleBooks = async (query) => {
+        setIsSearching(true);
+        try {
+          // We add langRestrict to prioritize NO/DK results, 
+          // but you can remove it to search everything.
+          const response = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5`
+          );
+          const data = await response.json();
+          
+          if (data.items) {
+            setSuggestions(data.items.map(item => ({
+              title: item.volumeInfo.title,
+              // Join multiple authors with commas
+              author: item.volumeInfo.authors ? item.volumeInfo.authors.join(', ') : 'Unknown',
+              // Page count is often available
+              pages: item.volumeInfo.pageCount || '',
+              id: item.id,
+              thumbnail: item.volumeInfo.imageLinks?.smallThumbnail
+            })));
+          } else {
+            setSuggestions([]);
+          }
+        } catch (error) {
+          console.error("Error searching books:", error);
+        }
+        setIsSearching(false);
+      };
+      
+      const selectBook = (book) => {
+        setNewBook({
+          title: book.title,
+          author: book.author,
+          pages: book.pages.toString()
+        });
+        setSuggestions([]);
+        setShowSuggestions(false);
+      };
+            
       useEffect(() => {
         loadUsers();
       }, []);
@@ -439,14 +493,47 @@
                       {error}
                     </div>
                   )}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <input
-                      type="text"
-                      placeholder="Boktittel"
-                      value={newBook.title}
-                      onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
+                  {/* REPLACEMENT UI FOR THE INPUTS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 relative">
+                    {/* Title Input with Autocomplete */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Søk bobktittel eller ISBN..."
+                        value={newBook.title}
+                        onChange={(e) => {
+                          setNewBook({ ...newBook, title: e.target.value });
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        // Close suggestions when clicking outside requires more logic, 
+                        // but for simple use, we can leave it open or add a close button
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                      
+                      {/* Suggestions Dropdown */}
+                      {showSuggestions && (suggestions.length > 0 || isSearching) && newBook.title && (
+                        <div className="absolute z-10 w-full bg-white mt-1 border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                          {isSearching && <div className="p-2 text-gray-500 text-sm">Søker...</div>}
+                          {suggestions.map((book) => (
+                            <div
+                              key={book.id}
+                              onClick={() => selectBook(book)}
+                              className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100 last:border-0 flex items-start gap-2"
+                            >
+                              {book.thumbnail && (
+                                <img src={book.thumbnail} alt="" className="w-8 h-12 object-cover rounded" />
+                              )}
+                              <div>
+                                <div className="font-semibold text-sm text-gray-800">{book.title}</div>
+                                <div className="text-xs text-gray-500">{book.author} • {book.pages} sider</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  
                     <input
                       type="text"
                       placeholder="Forfatter"
@@ -456,7 +543,7 @@
                     />
                     <input
                       type="number"
-                      placeholder="Antall sider totalt (valgfritt)"
+                      placeholder="Antall sider"
                       value={newBook.pages}
                       onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
