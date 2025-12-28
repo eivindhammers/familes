@@ -291,39 +291,47 @@
       };
 
       const updatePages = async (bookId) => {
-        const pagesToAdd = parseInt(pageUpdate);
-        if (!pagesToAdd || pagesToAdd <= 0) {
-          setError('Skriv inn et gyldig antall sider');
+        const newTotalRead = parseInt(pageUpdate);
+        
+        // Basic validation
+        if (isNaN(newTotalRead) || newTotalRead < 0) {
+          setError('Vennligst skriv inn et gyldig antall leste sider');
           return;
         }
-
+      
+        // Find the book to calculate the difference for the user's total progress
+        const targetBook = books.find(b => b.id === bookId);
+        const difference = newTotalRead - targetBook.pagesRead;
+      
         const updatedBooks = books.map(book => {
           if (book.id === bookId) {
-            return { ...book, pagesRead: book.pagesRead + pagesToAdd };
+            // Ensure they don't exceed total pages (optional but recommended)
+            const total = book.totalPages > 0 ? Math.min(newTotalRead, book.totalPages) : newTotalRead;
+            return { ...book, pagesRead: total };
           }
           return book;
         });
-
-        const totalPages = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
-        const newLevel = Math.floor(totalPages / PAGES_PER_LEVEL) + 1;
-
-        const streakData = checkAndUpdateStreak(currentUser, pagesToAdd);
+      
+        const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
+        const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
+      
+        // Use the 'difference' to update daily streak progress
+        const streakData = checkAndUpdateStreak(currentUser, difference > 0 ? difference : 0);
         const wasStreakActive = currentUser.currentStreak > 0;
-        const isStreakActive = streakData.currentStreak > 0;
         
         const updatedUser = {
           ...currentUser,
-          totalPages,
+          totalPages: totalPagesAcrossAllBooks,
           level: newLevel,
           ...streakData
         };
-
+      
         await saveBooks(currentUser.username, updatedBooks);
         await saveUser(currentUser.username, updatedUser);
         
         setCurrentUser(updatedUser);
         
-        if (!wasStreakActive && isStreakActive) {
+        if (!wasStreakActive && streakData.currentStreak > 0) {
           setShowStreakMessage(true);
           setTimeout(() => setShowStreakMessage(false), 3000);
         }
@@ -637,11 +645,12 @@
                               <div className="flex gap-2 mt-2">
                                 <input
                                   type="number"
-                                  placeholder="Sider..."
+                                  placeholder="Totalt lest..."
                                   value={pageUpdate}
                                   onChange={(e) => setPageUpdate(e.target.value)}
                                   className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
                                   autoFocus
+                                  onFocus={(e) => e.target.select()} // Optional: selects text so user can just start typing
                                 />
                                 <button
                                   onClick={() => updatePages(book.id)}
@@ -658,7 +667,10 @@
                               </div>
                             ) : (
                               <button
-                                onClick={() => setSelectedBook(book.id)}
+                                onClick={() => {
+                                  setSelectedBook(book.id);
+                                  setPageUpdate(book.pagesRead.toString()); // Pre-fills the current count
+                                }}
                                 className="mt-1 flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                               >
                                 <TrendingUp className="w-4 h-4" />
