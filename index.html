@@ -37,8 +37,8 @@
     }
     const database = firebase.database();
 
-    const PAGES_PER_LEVEL = 500;
-    const DAILY_PAGES_GOAL = 20;
+    const PAGES_PER_LEVEL = 20;
+    const DAILY_PAGES_GOAL = 5;
 
     // Icon components
     const BookOpen = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
@@ -592,12 +592,12 @@
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <h3 className="font-semibold text-lg text-gray-800 leading-tight">{book.title}</h3>
-                                <p className="text-gray-600 text-sm">by {book.author}</p>
+                                <p className="text-gray-600 text-sm">av {book.author}</p>
                               </div>
                               <div className="text-right flex-shrink-0 ml-2">
                                 <div className="text-2xl font-bold text-indigo-600">{book.pagesRead}</div>
                                 <div className="text-xs text-gray-500 whitespace-nowrap">
-                                  {book.totalPages > 0 ? `/ ${book.totalPages} pages` : 'pages'}
+                                  {book.totalPages > 0 ? `/ ${book.totalPages} sider` : 'sider'}
                                 </div>
                               </div>
                             </div>
@@ -617,7 +617,7 @@
                               <div className="flex gap-2 mt-2">
                                 <input
                                   type="number"
-                                  placeholder="Pages..."
+                                  placeholder="Sider..."
                                   value={pageUpdate}
                                   onChange={(e) => setPageUpdate(e.target.value)}
                                   className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
