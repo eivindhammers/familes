@@ -209,6 +209,11 @@
         await database.ref(`books/${profileId}`).set(booksObj);
       };
 
+      const saveReadingEntry = async (profileId, bookId, entry) => {
+        const entryRef = database.ref(`readingHistory/${profileId}/${bookId}`).push();
+        await entryRef.set(entry);
+      };
+
       const getTodayString = () => {
         const today = new Date();
         return today.toISOString().split('T')[0];
@@ -370,6 +375,13 @@
       
         const targetBook = books.find(b => b.id === bookId);
         const difference = newTotalRead - targetBook.pagesRead;
+        
+        // Don't log if no actual change
+        if (difference === 0) {
+          setPageUpdate('');
+          setSelectedBook(null);
+          return;
+        }
       
         const updatedBooks = books.map(book => {
           if (book.id === bookId) {
@@ -391,10 +403,23 @@
           level: newLevel,
           ...streakData
         };
+
+        // Create reading history entry
+        const readingEntry = {
+          timestamp: new Date().toISOString(),
+          bookTitle: targetBook.title,
+          bookAuthor: targetBook.author,
+          previousTotal: targetBook.pagesRead,
+          newTotal: newTotalRead,
+          pagesAdded: difference,
+          profileName: currentProfile.name,
+          levelAtTime: newLevel
+        };
       
         await saveBooks(currentProfile.id, updatedBooks);
         await saveProfile(authUser.uid, currentProfile.id, updatedProfile);
         await saveUserToGlobalList(currentProfile.id, updatedProfile);
+        await saveReadingEntry(currentProfile.id, bookId, readingEntry);
         
         setCurrentProfile(updatedProfile);
         
