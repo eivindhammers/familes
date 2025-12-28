@@ -259,7 +259,7 @@
 
       const addBook = async () => {
         if (!newBook.title || !newBook.author) {
-          setError('Please enter title and author');
+          setError('Skriv inn tittel og forfatter');
           return;
         }
       
@@ -274,7 +274,7 @@
         };
       
         const updatedBooks = [...books, book];
-        await saveBooks(currentUser.uid, updatedBooks);
+        await saveBooks(currentUser.username, updatedBooks);
         // Reset everything, including the cover
         setNewBook({ title: '', author: '', pages: '', coverUrl: '' }); 
         setError('');
@@ -642,7 +642,7 @@
                                 className="mt-1 flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                               >
                                 <TrendingUp className="w-4 h-4" />
-                                Oppdater sider lest
+                                Oppdater leste sider
                               </button>
                             )}
                           </div>
