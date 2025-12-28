@@ -8,6 +8,8 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -19,19 +21,17 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // Firebase Configuration
+    // --- 1. FIREBASE INITIALIZATION ---
     const firebaseConfig = {
-      apiKey: "AIzaSyBJAev8Jn2Ywh_ms57iRfFkZxXVRQu6Hlk",
+      apiKey: window.NETLIFY_CONFIG?.apiKey || "",
       authDomain: "familes-98f43.firebaseapp.com",
-      databaseURL: "https://familes-98f43-default-rtdb.europe-west1.firebasedatabase.app",
+      databaseURL: window.NETLIFY_CONFIG?.databaseURL || "",
       projectId: "familes-98f43",
       storageBucket: "familes-98f43.firebasestorage.app",
       messagingSenderId: "341223228678",
-      appId: "1:341223228678:web:267ba8ab953eed3d088a87",
-      measurementId: "G-GC4TWT0TW0"
+      appId: window.NETLIFY_CONFIG?.appId || ""
     };
-
-    // Initialize Firebase
+    
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -68,6 +68,65 @@
       const [isSearching, setIsSearching] = useState(false);
       const [showSuggestions, setShowSuggestions] = useState(false);
 
+      // New states for the secret
+      const [familySecret, setFamilySecret] = useState('');
+      const [isSecretVerified, setIsSecretVerified] = useState(!!localStorage.getItem('family_secret_verified'));
+
+      // The hashed version of your secret stored in Netlify
+      const HASHED_SECRET = window.NETLIFY_CONFIG?.secretHash;
+    
+      const handleSecretSubmit = () => {
+        // Hash the user's input to compare with the secret hash
+        const inputHash = CryptoJS.SHA1(familySecret).toString();
+        
+        if (inputHash === HASHED_SECRET) {
+          localStorage.setItem('family_secret_verified', 'true');
+          setIsSecretVerified(true);
+          setError('');
+          // Celebrate the entry!
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } else {
+          setError('Feil familie-kode! Spør en voksen om hjelp.');
+        }
+      };
+    
+      // --- 3. THE SECRET ENTRANCE UI ---
+      if (!isSecretVerified) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
+              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="text-indigo-600 w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2 text-gray-800">FamiLes 2026</h2>
+              <p className="text-gray-600 mb-6 text-sm">Vennligst skriv inn familie-koden for å starte.</p>
+              
+              <input
+                type="password"
+                value={familySecret}
+                onChange={(e) => setFamilySecret(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSecretSubmit()}
+                placeholder="Hemmelig kode..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl mb-4 text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+              />
+              
+              {error && <p className="text-red-500 mb-4 text-sm font-medium">{error}</p>}
+              
+              <button
+                onClick={handleSecretSubmit}
+                className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg active:transform active:scale-95"
+              >
+                Lås opp
+              </button>
+            </div>
+          </div>
+        );
+      }
+      
       const deleteBook = async (bookId) => {
         if (window.confirm('Er du sikker på at du vil slette denne boken?')) {
           const updatedBooks = books.filter(book => book.id !== bookId);
@@ -81,7 +140,28 @@
         if (!url) return '';
         return url.replace('http://', 'https://');
       };
+
+      const triggerConfetti = () => {
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
       
+        const randomInRange = (min, max) => Math.random() * (max - min) + min;
+      
+        const interval = setInterval(function() {
+          const timeLeft = animationEnd - Date.now();
+      
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+      
+          const particleCount = 50 * (timeLeft / duration);
+          // since particles fall down, start a bit higher than random
+          confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+          confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+      };
+          
       // Add this helper for debouncing
       useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -292,33 +372,37 @@
 
       const updatePages = async (bookId) => {
         const newTotalRead = parseInt(pageUpdate);
-        
-        // Basic validation
         if (isNaN(newTotalRead) || newTotalRead < 0) {
-          setError('Vennligst skriv inn et gyldig antall leste sider');
+          setError('Vennligst skriv inn et gyldig tall');
           return;
         }
       
-        // Find the book to calculate the difference for the user's total progress
         const targetBook = books.find(b => b.id === bookId);
-        const difference = newTotalRead - targetBook.pagesRead;
+        const pagesAddedThisSession = newTotalRead - targetBook.pagesRead;
       
+        // 1. Calculate daily progress before and after this update
+        const dailyBefore = currentUser.pagesReadToday || 0;
+        const dailyAfter = dailyBefore + (pagesAddedThisSession > 0 ? pagesAddedThisSession : 0);
+      
+        // 2. Trigger confetti if they just hit or passed the goal (5 pages)
+        if (dailyBefore < 5 && dailyAfter >= 5) {
+          triggerConfetti();
+        }
+      
+        // 3. Update the book list
         const updatedBooks = books.map(book => {
           if (book.id === bookId) {
-            // Ensure they don't exceed total pages (optional but recommended)
-            const total = book.totalPages > 0 ? Math.min(newTotalRead, book.totalPages) : newTotalRead;
-            return { ...book, pagesRead: total };
+            return { ...book, pagesRead: newTotalRead };
           }
           return book;
         });
       
-        const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
-        const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
-      
-        // Use the 'difference' to update daily streak progress
-        const streakData = checkAndUpdateStreak(currentUser, difference > 0 ? difference : 0);
-        const wasStreakActive = currentUser.currentStreak > 0;
+        // 4. Update the User stats (Level, Streaks, etc.)
+        const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, b) => sum + b.pagesRead, 0);
+        const newLevel = Math.floor(totalPagesAcrossAllBooks / 50) + 1; // Assuming 50 pages per level
         
+        const streakData = checkAndUpdateStreak(currentUser, pagesAddedThisSession > 0 ? pagesAddedThisSession : 0);
+      
         const updatedUser = {
           ...currentUser,
           totalPages: totalPagesAcrossAllBooks,
@@ -326,19 +410,14 @@
           ...streakData
         };
       
+        // 5. Save to Firebase
         await saveBooks(currentUser.username, updatedBooks);
         await saveUser(currentUser.username, updatedUser);
         
+        setBooks(updatedBooks);
         setCurrentUser(updatedUser);
-        
-        if (!wasStreakActive && streakData.currentStreak > 0) {
-          setShowStreakMessage(true);
-          setTimeout(() => setShowStreakMessage(false), 3000);
-        }
-        
         setPageUpdate('');
         setSelectedBook(null);
-        setError('');
       };
 
       const calculateProgress = (totalPages) => {
