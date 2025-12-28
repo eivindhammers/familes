@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Family Book Contest</title>
+  <title>FamiLes 2026</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -152,13 +152,13 @@
 
       const handleAuth = async () => {
         if (!username || !password) {
-          setError('Please enter username and password');
+          setError('Vennligst fyll inn brukernavn og passord');
           return;
         }
 
         if (isRegistering) {
           if (users[username]) {
-            setError('Username already exists');
+            setError('Brukernavnet eksisterer allerede');
             return;
           }
           const newUser = {
@@ -178,7 +178,7 @@
         } else {
           const user = users[username];
           if (!user || user.password !== password) {
-            setError('Invalid username or password');
+            setError('Ugyldig brukernavn eller passord');
             return;
           }
           
@@ -202,7 +202,7 @@
 
       const addBook = async () => {
         if (!newBook.title || !newBook.author) {
-          setError('Please enter title and author');
+          setError('Skriv inn tittel og forfatter');
           return;
         }
 
@@ -224,7 +224,7 @@
       const updatePages = async (bookId) => {
         const pagesToAdd = parseInt(pageUpdate);
         if (!pagesToAdd || pagesToAdd <= 0) {
-          setError('Please enter a valid number of pages');
+          setError('Skriv inn et gyldig antall sider');
           return;
         }
 
@@ -278,7 +278,7 @@
       if (loading) {
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-            <div className="text-xl text-gray-600">Loading...</div>
+            <div className="text-xl text-gray-600">Laster...</div>
           </div>
         );
       }
@@ -291,7 +291,7 @@
                 <BookOpen className="w-12 h-12 text-indigo-600" />
               </div>
               <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-                Family Book Contest
+                FamiLes 2026
               </h1>
               <p className="text-center text-gray-600 mb-6">
                 {isRegistering ? 'Create your account' : 'Sign in to continue'}
@@ -324,7 +324,7 @@
                   className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
                 >
                   <LogIn className="w-5 h-5" />
-                  {isRegistering ? 'Register' : 'Sign In'}
+                  {isRegistering ? 'Registrer' : 'Logg inn'}
                 </button>
                 <button
                   onClick={() => {
@@ -333,7 +333,7 @@
                   }}
                   className="w-full text-indigo-600 hover:text-indigo-700 text-sm"
                 >
-                  {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register'}
+                  {isRegistering ? 'Har du allerede en konto? Logg inn' : 'Trenger du an konto? Registrer'}
                 </button>
               </div>
             </div>
@@ -350,21 +350,21 @@
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-8 h-8 text-indigo-600" />
-                  <h1 className="text-2xl font-bold text-gray-800">Family Book Contest</h1>
+                  <h1 className="text-2xl font-bold text-gray-800">FamiLes 2026</h1>
                 </div>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition"
                 >
                   <LogOut className="w-5 h-5" />
-                  Logout
+                  Logg ut
                 </button>
               </div>
               
               {showStreakMessage && (
                 <div className="bg-orange-50 border-2 border-orange-300 text-orange-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
                   <Flame className="w-5 h-5 text-orange-500" />
-                  <span className="font-semibold">Streak started! Keep reading {DAILY_PAGES_GOAL}+ pages daily!</span>
+                  <span className="font-semibold">Startet streak! Fortsett å lese {DAILY_PAGES_GOAL}+ sider daglig!</span>
                 </div>
               )}
               
@@ -380,7 +380,7 @@
                   />
                 </div>
                 <div className="text-sm text-gray-600 text-center">
-                  {currentUser.totalPages % PAGES_PER_LEVEL} / {PAGES_PER_LEVEL} pages to Level {currentUser.level + 1}
+                  {currentUser.totalPages % PAGES_PER_LEVEL} / {PAGES_PER_LEVEL} sider til Level {currentUser.level + 1}
                 </div>
               </div>
               
@@ -390,17 +390,17 @@
                     <Flame className={`w-6 h-6 ${currentUser.currentStreak > 0 ? 'text-orange-500' : 'text-gray-400'}`} />
                     <span className="text-2xl font-bold text-gray-800">{currentUser.currentStreak || 0}</span>
                   </div>
-                  <div className="text-sm text-gray-600">Day Streak</div>
+                  <div className="text-sm text-gray-600">Daglig streak</div>
                 </div>
                 
                 <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-gray-800 mb-1">{currentUser.longestStreak || 0}</div>
-                  <div className="text-sm text-gray-600">Best Streak</div>
+                  <div className="text-sm text-gray-600">Beste streak</div>
                 </div>
                 
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-gray-800 mb-1">{currentUser.pagesReadToday || 0}</div>
-                  <div className="text-sm text-gray-600">Today ({DAILY_PAGES_GOAL}+ for streak)</div>
+                  <div className="text-sm text-gray-600">I dag ({DAILY_PAGES_GOAL}+ for streak)</div>
                 </div>
               </div>
             </div>
@@ -415,7 +415,7 @@
                 }`}
               >
                 <BookOpen className="w-5 h-5" />
-                My Books
+                Mine bøker
               </button>
               <button
                 onClick={() => setActiveTab('leaderboard')}
@@ -426,7 +426,7 @@
                 }`}
               >
                 <Users className="w-5 h-5" />
-                Leaderboard
+                Ledertavle
               </button>
             </div>
 
@@ -442,21 +442,21 @@
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <input
                       type="text"
-                      placeholder="Book Title"
+                      placeholder="Boktittel"
                       value={newBook.title}
                       onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                     <input
                       type="text"
-                      placeholder="Author"
+                      placeholder="Forfatter"
                       value={newBook.author}
                       onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                     <input
                       type="number"
-                      placeholder="Total Pages (optional)"
+                      placeholder="Antall sider totalt (valgfritt)"
                       value={newBook.pages}
                       onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
                       className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -467,14 +467,14 @@
                     className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                   >
                     <Plus className="w-5 h-5" />
-                    Add Book
+                    Legg til bok
                   </button>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold mb-4 text-gray-800">My Reading List</h2>
+                  <h2 className="text-xl font-bold mb-4 text-gray-800">Min leseliste</h2>
                   {books.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No books yet. Add your first book above!</p>
+                    <p className="text-gray-500 text-center py-8">Ingen bøker ennå. Legg til din første bok ovenfor!</p>
                   ) : (
                     <div className="space-y-4">
                       {books.map(book => (
@@ -482,7 +482,7 @@
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <h3 className="font-semibold text-lg text-gray-800">{book.title}</h3>
-                              <p className="text-gray-600">by {book.author}</p>
+                              <p className="text-gray-600">av {book.author}</p>
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-indigo-600">{book.pagesRead}</div>
@@ -503,7 +503,7 @@
                             <div className="flex gap-2">
                               <input
                                 type="number"
-                                placeholder="Pages to add"
+                                placeholder="Sider å legge til"
                                 value={pageUpdate}
                                 onChange={(e) => setPageUpdate(e.target.value)}
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -513,7 +513,7 @@
                                 onClick={() => updatePages(book.id)}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                               >
-                                Save
+                                Lagre
                               </button>
                               <button
                                 onClick={() => {
@@ -531,7 +531,7 @@
                               className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition"
                             >
                               <TrendingUp className="w-4 h-4" />
-                              Update Progress
+                              Oppdaterer...
                             </button>
                           )}
                         </div>
@@ -542,7 +542,7 @@
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">Family Leaderboard</h2>
+                <h2 className="text-xl font-bold mb-4 text-gray-800">FamiLes ledertavle</h2>
                 <div className="space-y-3">
                   {getLeaderboard().map(user => (
                     <div
@@ -577,7 +577,7 @@
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
-                        <div className="text-sm text-gray-500">pages read</div>
+                        <div className="text-sm text-gray-500">sider lest</div>
                       </div>
                     </div>
                   ))}
