@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Book Contest</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Firebase Configuration
+    // REPLACE THESE WITH YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyBJAev8Jn2Ywh_ms57iRfFkZxXVRQu6Hlk",
+      authDomain: "familes-98f43.firebaseapp.com",
+      databaseURL: "https://familes-98f43-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "familes-98f43",
+      storageBucket: "familes-98f43.firebasestorage.app",
+      messagingSenderId: "341223228678",
+      appId: "1:341223228678:web:267ba8ab953eed3d088a87",
+      measurementId: "G-GC4TWT0TW0"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    const PAGES_PER_LEVEL = 500;
+    const DAILY_PAGES_GOAL = 20;
+
+    // Icon components
+    const BookOpen = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+    const TrendingUp = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
+    const Users = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+    const Plus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+    const LogOut = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+    const LogIn = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>;
+    const Flame = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>;
+
+    const BookContestApp = () => {
+      const [currentUser, setCurrentUser] = useState(null);
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [isRegistering, setIsRegistering] = useState(false);
+      const [users, setUsers] = useState({});
+      const [books, setBooks] = useState([]);
+      const [newBook, setNewBook] = useState({ title: '', author: '', pages: '' });
+      const [pageUpdate, setPageUpdate] = useState('');
+      const [selectedBook, setSelectedBook] = useState(null);
+      const [activeTab, setActiveTab] = useState('myBooks');
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState('');
+      const [showStreakMessage, setShowStreakMessage] = useState(false);
+
+      useEffect(() => {
+        loadUsers();
+      }, []);
+
+      useEffect(() => {
+        if (currentUser) {
+          loadUserBooks(currentUser.username);
+        }
+      }, [currentUser]);
+
+      const loadUsers = () => {
+        const usersRef = database.ref('users');
+        usersRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          setUsers(data || {});
+          setLoading(false);
+        });
+      };
+
+      const loadUserBooks = (userId) => {
+        const booksRef = database.ref(`books/${userId}`);
+        booksRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          setBooks(data ? Object.values(data) : []);
+        });
+      };
+
+      const saveUser = async (username, userData) => {
+        await database.ref(`users/${username}`).set(userData);
+      };
+
+      const saveBooks = async (userId, booksArray) => {
+        const booksObj = {};
+        booksArray.forEach(book => {
+          booksObj[book.id] = book;
+        });
+        await database.ref(`books/${userId}`).set(booksObj);
+      };
+
+      const getTodayString = () => {
+        const today = new Date();
+        return today.toISOString().split('T')[0];
+      };
+
+      const checkAndUpdateStreak = (user, pagesToday) => {
+        const today = getTodayString();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().split('T')[0];
+
+        let currentStreak = user.currentStreak || 0;
+        let longestStreak = user.longestStreak || 0;
+        let lastReadDate = user.lastReadDate || null;
+        let pagesReadToday = user.pagesReadToday || 0;
+
+        if (lastReadDate === today) {
+          pagesReadToday += pagesToday;
+        } else {
+          pagesReadToday = pagesToday;
+        }
+
+        if (pagesReadToday >= DAILY_PAGES_GOAL) {
+          if (lastReadDate === yesterday || lastReadDate === today) {
+            if (lastReadDate === yesterday) {
+              currentStreak += 1;
+            }
+          } else if (lastReadDate === null || lastReadDate < yesterdayString) {
+            currentStreak = 1;
+          }
+
+          if (currentStreak > longestStreak) {
+            longestStreak = currentStreak;
+          }
+        } else if (lastReadDate && lastReadDate < yesterdayString) {
+          currentStreak = 0;
+        }
+
+        return {
+          currentStreak,
+          longestStreak,
+          lastReadDate: today,
+          pagesReadToday
+        };
+      };
+
+      const handleAuth = async () => {
+        if (!username || !password) {
+          setError('Please enter username and password');
+          return;
+        }
+
+        if (isRegistering) {
+          if (users[username]) {
+            setError('Username already exists');
+            return;
+          }
+          const newUser = {
+            username,
+            password,
+            totalPages: 0,
+            level: 1,
+            currentStreak: 0,
+            longestStreak: 0,
+            lastReadDate: null,
+            pagesReadToday: 0,
+            createdAt: new Date().toISOString()
+          };
+          await saveUser(username, newUser);
+          setCurrentUser(newUser);
+          setError('');
+        } else {
+          const user = users[username];
+          if (!user || user.password !== password) {
+            setError('Invalid username or password');
+            return;
+          }
+          
+          const today = getTodayString();
+          if (user.lastReadDate !== today) {
+            user.pagesReadToday = 0;
+          }
+          
+          setCurrentUser(user);
+          setError('');
+        }
+        setUsername('');
+        setPassword('');
+      };
+
+      const handleLogout = () => {
+        setCurrentUser(null);
+        setBooks([]);
+        setActiveTab('myBooks');
+      };
+
+      const addBook = async () => {
+        if (!newBook.title || !newBook.author) {
+          setError('Please enter title and author');
+          return;
+        }
+
+        const book = {
+          id: Date.now().toString(),
+          title: newBook.title,
+          author: newBook.author,
+          totalPages: parseInt(newBook.pages) || 0,
+          pagesRead: 0,
+          startedAt: new Date().toISOString()
+        };
+
+        const updatedBooks = [...books, book];
+        await saveBooks(currentUser.username, updatedBooks);
+        setNewBook({ title: '', author: '', pages: '' });
+        setError('');
+      };
+
+      const updatePages = async (bookId) => {
+        const pagesToAdd = parseInt(pageUpdate);
+        if (!pagesToAdd || pagesToAdd <= 0) {
+          setError('Please enter a valid number of pages');
+          return;
+        }
+
+        const updatedBooks = books.map(book => {
+          if (book.id === bookId) {
+            return { ...book, pagesRead: book.pagesRead + pagesToAdd };
+          }
+          return book;
+        });
+
+        const totalPages = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
+        const newLevel = Math.floor(totalPages / PAGES_PER_LEVEL) + 1;
+
+        const streakData = checkAndUpdateStreak(currentUser, pagesToAdd);
+        const wasStreakActive = currentUser.currentStreak > 0;
+        const isStreakActive = streakData.currentStreak > 0;
+        
+        const updatedUser = {
+          ...currentUser,
+          totalPages,
+          level: newLevel,
+          ...streakData
+        };
+
+        await saveBooks(currentUser.username, updatedBooks);
+        await saveUser(currentUser.username, updatedUser);
+        
+        setCurrentUser(updatedUser);
+        
+        if (!wasStreakActive && isStreakActive) {
+          setShowStreakMessage(true);
+          setTimeout(() => setShowStreakMessage(false), 3000);
+        }
+        
+        setPageUpdate('');
+        setSelectedBook(null);
+        setError('');
+      };
+
+      const calculateProgress = (totalPages) => {
+        const currentLevelPages = totalPages % PAGES_PER_LEVEL;
+        return (currentLevelPages / PAGES_PER_LEVEL) * 100;
+      };
+
+      const getLeaderboard = () => {
+        return Object.values(users)
+          .sort((a, b) => b.totalPages - a.totalPages)
+          .map((user, index) => ({ ...user, rank: index + 1 }));
+      };
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+            <div className="text-xl text-gray-600">Loading...</div>
+          </div>
+        );
+      }
+
+      if (!currentUser) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+              <div className="flex items-center justify-center mb-6">
+                <BookOpen className="w-12 h-12 text-indigo-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+                Family Book Contest
+              </h1>
+              <p className="text-center text-gray-600 mb-6">
+                {isRegistering ? 'Create your account' : 'Sign in to continue'}
+              </p>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAuth()}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleAuth}
+                  className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                >
+                  <LogIn className="w-5 h-5" />
+                  {isRegistering ? 'Register' : 'Sign In'}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsRegistering(!isRegistering);
+                    setError('');
+                  }}
+                  className="w-full text-indigo-600 hover:text-indigo-700 text-sm"
+                >
+                  {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const progress = calculateProgress(currentUser.totalPages);
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="max-w-6xl mx-auto p-4">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-8 h-8 text-indigo-600" />
+                  <h1 className="text-2xl font-bold text-gray-800">Family Book Contest</h1>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </div>
+              
+              {showStreakMessage && (
+                <div className="bg-orange-50 border-2 border-orange-300 text-orange-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
+                  <Flame className="w-5 h-5 text-orange-500" />
+                  <span className="font-semibold">Streak started! Keep reading {DAILY_PAGES_GOAL}+ pages daily!</span>
+                </div>
+              )}
+              
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-gray-700">{currentUser.username}</span>
+                  <span className="text-2xl font-bold text-indigo-600">Level {currentUser.level}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+                  <div
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="text-sm text-gray-600 text-center">
+                  {currentUser.totalPages % PAGES_PER_LEVEL} / {PAGES_PER_LEVEL} pages to Level {currentUser.level + 1}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Flame className={`w-6 h-6 ${currentUser.currentStreak > 0 ? 'text-orange-500' : 'text-gray-400'}`} />
+                    <span className="text-2xl font-bold text-gray-800">{currentUser.currentStreak || 0}</span>
+                  </div>
+                  <div className="text-sm text-gray-600">Day Streak</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{currentUser.longestStreak || 0}</div>
+                  <div className="text-sm text-gray-600">Best Streak</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{currentUser.pagesReadToday || 0}</div>
+                  <div className="text-sm text-gray-600">Today ({DAILY_PAGES_GOAL}+ for streak)</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => setActiveTab('myBooks')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+                  activeTab === 'myBooks'
+                    ? 'bg-white shadow-md text-indigo-600'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                }`}
+              >
+                <BookOpen className="w-5 h-5" />
+                My Books
+              </button>
+              <button
+                onClick={() => setActiveTab('leaderboard')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+                  activeTab === 'leaderboard'
+                    ? 'bg-white shadow-md text-indigo-600'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                }`}
+              >
+                <Users className="w-5 h-5" />
+                Leaderboard
+              </button>
+            </div>
+
+            {activeTab === 'myBooks' ? (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold mb-4 text-gray-800">Add New Book</h2>
+                  {error && activeTab === 'myBooks' && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                      {error}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <input
+                      type="text"
+                      placeholder="Book Title"
+                      value={newBook.title}
+                      onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Author"
+                      value={newBook.author}
+                      onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Total Pages (optional)"
+                      value={newBook.pages}
+                      onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                  <button
+                    onClick={addBook}
+                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Book
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-bold mb-4 text-gray-800">My Reading List</h2>
+                  {books.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No books yet. Add your first book above!</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {books.map(book => (
+                        <div key={book.id} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h3 className="font-semibold text-lg text-gray-800">{book.title}</h3>
+                              <p className="text-gray-600">by {book.author}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-indigo-600">{book.pagesRead}</div>
+                              <div className="text-sm text-gray-500">
+                                {book.totalPages > 0 ? `/ ${book.totalPages} pages` : 'pages read'}
+                              </div>
+                            </div>
+                          </div>
+                          {book.totalPages > 0 && (
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                              <div
+                                className="bg-indigo-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min((book.pagesRead / book.totalPages) * 100, 100)}%` }}
+                              />
+                            </div>
+                          )}
+                          {selectedBook === book.id ? (
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                placeholder="Pages to add"
+                                value={pageUpdate}
+                                onChange={(e) => setPageUpdate(e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => updatePages(book.id)}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedBook(null);
+                                  setPageUpdate('');
+                                }}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setSelectedBook(book.id)}
+                              className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition"
+                            >
+                              <TrendingUp className="w-4 h-4" />
+                              Update Progress
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-bold mb-4 text-gray-800">Family Leaderboard</h2>
+                <div className="space-y-3">
+                  {getLeaderboard().map(user => (
+                    <div
+                      key={user.username}
+                      className={`flex items-center justify-between p-4 rounded-lg ${
+                        user.username === currentUser.username
+                          ? 'bg-indigo-50 border-2 border-indigo-300'
+                          : 'bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`text-2xl font-bold ${
+                          user.rank === 1 ? 'text-yellow-500' :
+                          user.rank === 2 ? 'text-gray-400' :
+                          user.rank === 3 ? 'text-amber-600' :
+                          'text-gray-400'
+                        }`}>
+                          #{user.rank}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-800 flex items-center gap-2">
+                            {user.username}
+                            {user.currentStreak > 0 && (
+                              <span className="flex items-center gap-1 text-orange-500 text-sm">
+                                <Flame className="w-4 h-4" />
+                                {user.currentStreak}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">Level {user.level}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
+                        <div className="text-sm text-gray-500">pages read</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<BookContestApp />, document.getElementById('root'));
+  </script>
+</body>
+</html>
