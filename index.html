@@ -58,6 +58,7 @@
       const [profiles, setProfiles] = useState([]);
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
+      const [registerName, setRegisterName] = useState('');
       const [isRegistering, setIsRegistering] = useState(false);
       const [showProfileManager, setShowProfileManager] = useState(false);
       const [newProfileName, setNewProfileName] = useState('');
@@ -255,9 +256,16 @@
       };
 
       const handleAuth = async () => {
-        if (!email || !password) {
-          setError('Vennligst fyll inn e-post og passord');
-          return;
+        if (isRegistering) {
+          if (!email || !password || !registerName) {
+            setError('Vennligst fyll inn alle felt');
+            return;
+          }
+        } else {
+          if (!email || !password) {
+            setError('Vennligst fyll inn e-post og passord');
+            return;
+          }
         }
 
         try {
@@ -266,8 +274,8 @@
             const profileId = `${userCredential.user.uid}_main`;
             const defaultProfile = {
               id: profileId,
-              name: 'Forelder',
-              isParent: true,
+              name: registerName.trim(),
+              isMainAccount: true,
               totalPages: 0,
               level: 1,
               currentStreak: 0,
@@ -279,6 +287,7 @@
             await saveProfile(userCredential.user.uid, profileId, defaultProfile);
             await saveUserToGlobalList(profileId, defaultProfile);
             setError('');
+            setRegisterName('');
           } else {
             await auth.signInWithEmailAndPassword(email, password);
             setError('');
@@ -306,7 +315,7 @@
         const newProfile = {
           id: profileId,
           name: newProfileName.trim(),
-          isParent: false,
+          isMainAccount: false,
           totalPages: 0,
           level: 1,
           currentStreak: 0,
@@ -439,6 +448,15 @@
               )}
 
               <div className="space-y-4">
+                {isRegistering && (
+                  <input
+                    type="text"
+                    placeholder="Ditt navn"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                )}
                 <input
                   type="email"
                   placeholder="E-post"
@@ -464,6 +482,7 @@
                 <button
                   onClick={() => {
                     setIsRegistering(!isRegistering);
+                    setRegisterName('');
                     setError('');
                   }}
                   className="w-full text-indigo-600 hover:text-indigo-700 text-sm"
@@ -547,7 +566,7 @@
                   className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-indigo-500 hover:text-indigo-600 transition flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
-                  Legg til ny profil (barn)
+                  Legg til ny profil
                 </button>
               )}
             </div>
