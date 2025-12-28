@@ -433,7 +433,7 @@
             {activeTab === 'myBooks' ? (
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-bold mb-4 text-gray-800">Add New Book</h2>
+                  <h2 className="text-xl font-bold mb-4 text-gray-800">Legg til ny bok</h2>
                   {error && activeTab === 'myBooks' && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
                       {error}
@@ -487,7 +487,7 @@
                             <div className="text-right">
                               <div className="text-2xl font-bold text-indigo-600">{book.pagesRead}</div>
                               <div className="text-sm text-gray-500">
-                                {book.totalPages > 0 ? `/ ${book.totalPages} pages` : 'pages read'}
+                                {book.totalPages > 0 ? `/ ${book.totalPages} lest` : 'sider lest'}
                               </div>
                             </div>
                           </div>
@@ -531,7 +531,7 @@
                               className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition"
                             >
                               <TrendingUp className="w-4 h-4" />
-                              Oppdaterer...
+                              Oppdater leste sider
                             </button>
                           )}
                         </div>
