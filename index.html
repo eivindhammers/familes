@@ -300,13 +300,24 @@
       const loadUserProfiles = async (uid) => {
         database.ref(`userProfiles/${uid}`).on('value', (snapshot) => {
           const data = snapshot.val();
-          const profilesList = data ? Object.values(data).map(profile => {
-            // Migration: Convert totalPages to totalXP if needed
-            if (profile.totalPages !== undefined && profile.totalXP === undefined) {
-              return { ...profile, totalXP: profile.totalPages };
-            }
-            return profile;
-          }) : [];
+          const profilesList = [];
+
+          if (data) {
+            snapshot.forEach((childSnapshot) => {
+              const profile = childSnapshot.val();
+              // Migration: Convert totalPages to totalXP if needed and persist the change
+              if (profile.totalPages !== undefined && profile.totalXP === undefined) {
+                const migratedProfile = { ...profile, totalXP: profile.totalPages };
+                // Persist migration to the database so it does not run on every load
+                database
+                  .ref(`userProfiles/${uid}/${childSnapshot.key}`)
+                  .update({ totalXP: profile.totalPages });
+                profilesList.push(migratedProfile);
+              } else {
+                profilesList.push(profile);
+              }
+            });
+          }
           setProfiles(profilesList);
           if (profilesList.length === 1 && !currentProfile) {
             setCurrentProfile(profilesList[0]);
