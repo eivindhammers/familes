@@ -89,11 +89,82 @@
       const confettiTimeoutRef = useRef(null);
       const levelUpMessageTimeoutRef = useRef(null);
       const streakMessageTimeoutRef = useRef(null);
+      
+      // Queue for managing multiple level-up messages
+      const levelUpQueueRef = useRef([]);
+      const isProcessingLevelUpRef = useRef(false);
+      const levelUpQueueSizeRef = useRef(0);
 
       // Derived state instead of separate showSuggestions state
       const showSuggestions = searchFocused && newBook.title && (suggestions.length > 0 || isSearching);
 
       const clearError = () => error && setError('');
+      
+      /**
+       * Process the level-up message queue sequentially.
+       * Uses 2 seconds per message for multiple level-ups, 4 seconds for a single level-up.
+       * This ensures users see all intermediate level-ups when leveling up multiple times rapidly.
+       */
+      const processLevelUpQueue = () => {
+        if (isProcessingLevelUpRef.current || levelUpQueueRef.current.length === 0) {
+          return;
+        }
+        
+        isProcessingLevelUpRef.current = true;
+        const level = levelUpQueueRef.current.shift();
+        
+        // Determine display duration: 2s for multiple level-ups, 4s for single
+        const displayDuration = levelUpQueueSizeRef.current > 1 ? 2000 : 4000;
+        
+        // Show the level-up message
+        setShowLevelUpMessage(level);
+        
+        // Fire confetti if the library is available
+        if (typeof window.confetti === 'function') {
+          window.confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          // Fire a second burst for more impact
+          // Clear existing timeout if any
+          if (confettiTimeoutRef.current) {
+            clearTimeout(confettiTimeoutRef.current);
+          }
+          confettiTimeoutRef.current = setTimeout(() => {
+            window.confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 }
+            });
+            window.confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 }
+            });
+            confettiTimeoutRef.current = null;
+          }, 250);
+        }
+        
+        // Clear existing timeout if any
+        if (levelUpMessageTimeoutRef.current) {
+          clearTimeout(levelUpMessageTimeoutRef.current);
+        }
+        
+        // Hide message and process next item in queue after appropriate duration
+        levelUpMessageTimeoutRef.current = setTimeout(() => {
+          setShowLevelUpMessage(null);
+          levelUpMessageTimeoutRef.current = null;
+          isProcessingLevelUpRef.current = false;
+          
+          // Process next message in queue if any
+          if (levelUpQueueRef.current.length > 0) {
+            processLevelUpQueue();
+          }
+        }, displayDuration);
+      };
 
       const deleteBook = async (bookId) => {
         if (!window.confirm('Er du sikker på at du vil slette denne boken?')) return;
@@ -469,45 +540,16 @@
         
         setCurrentProfile(updatedProfile);
         
-        // Check for level up
+        // Check for level up(s) - handle multiple levels in case of rapid progression
         if (newLevel > currentProfile.level) {
-          setShowLevelUpMessage(newLevel);
-          // Fire confetti if the library is available
-          if (typeof window.confetti === 'function') {
-            window.confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 }
-            });
-            // Fire a second burst for more impact
-            // Clear existing timeout if any
-            if (confettiTimeoutRef.current) {
-              clearTimeout(confettiTimeoutRef.current);
-            }
-            confettiTimeoutRef.current = setTimeout(() => {
-              window.confetti({
-                particleCount: 50,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 }
-              });
-              window.confetti({
-                particleCount: 50,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 }
-              });
-              confettiTimeoutRef.current = null;
-            }, 250);
+          // Add all intermediate levels to the queue
+          for (let level = currentProfile.level + 1; level <= newLevel; level++) {
+            levelUpQueueRef.current.push(level);
           }
-          // Clear existing timeout if any
-          if (levelUpMessageTimeoutRef.current) {
-            clearTimeout(levelUpMessageTimeoutRef.current);
-          }
-          levelUpMessageTimeoutRef.current = setTimeout(() => {
-            setShowLevelUpMessage(null);
-            levelUpMessageTimeoutRef.current = null;
-          }, 4000);
+          // Store the initial queue size to determine display duration
+          levelUpQueueSizeRef.current = levelUpQueueRef.current.length;
+          // Start processing the queue
+          processLevelUpQueue();
         }
         
         if (!wasStreakActive && streakData.currentStreak > 0) {
