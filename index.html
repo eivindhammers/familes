@@ -13,6 +13,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -72,6 +75,7 @@
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState('');
       const [showStreakMessage, setShowStreakMessage] = useState(false);
+      const [showLevelUpMessage, setShowLevelUpMessage] = useState(null);
       const [suggestions, setSuggestions] = useState([]);
       const [isSearching, setIsSearching] = useState(false);
       const [searchFocused, setSearchFocused] = useState(false);
@@ -442,6 +446,33 @@
         
         setCurrentProfile(updatedProfile);
         
+        // Check for level up
+        if (newLevel > currentProfile.level) {
+          setShowLevelUpMessage(newLevel);
+          // Fire confetti!
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          // Fire a second burst for more impact
+          setTimeout(() => {
+            confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 }
+            });
+            confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 }
+            });
+          }, 250);
+          setTimeout(() => setShowLevelUpMessage(null), 4000);
+        }
+        
         if (!wasStreakActive && streakData.currentStreak > 0) {
           setShowStreakMessage(true);
           setTimeout(() => setShowStreakMessage(false), 3000);
@@ -659,6 +690,14 @@
                 <div className="bg-orange-50 border-2 border-orange-300 text-orange-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
                   <Flame className="w-5 h-5 text-orange-500" />
                   <span className="font-semibold">Startet streak! Fortsett å lese {DAILY_PAGES_GOAL}+ sider daglig!</span>
+                </div>
+              )}
+              
+              {showLevelUpMessage && (
+                <div className="bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-indigo-400 text-indigo-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
+                  <span className="text-2xl">🎉</span>
+                  <span className="font-semibold">Gratulerer! Du nådde Level {showLevelUpMessage}!</span>
+                  <span className="text-2xl">🎉</span>
                 </div>
               )}
               
