@@ -66,8 +66,10 @@
     const getLevelFromPages = (totalPages) => {
       if (totalPages <= 0) return 1;
       // Solve: totalPages = 5 * (N-1) * N / 2
-      // Rearranging: N^2 - N - (2 * totalPages / 5) = 0
-      // Using quadratic formula: N = (1 + sqrt(1 + 8 * totalPages / 5)) / 2
+      // Expanding: 5N² - 5N = 2 * totalPages
+      // Standard form: N² - N - (2 * totalPages / 5) = 0
+      // Quadratic formula: N = (1 ± sqrt(1 + 8 * totalPages / 5)) / 2
+      // Taking positive root and flooring to get current level
       const level = Math.floor((1 + Math.sqrt(1 + 8 * totalPages / 5)) / 2);
       return Math.max(1, level);
     };
@@ -613,8 +615,8 @@
         const pagesIntoCurrentLevel = totalPages - pagesForCurrentLevel;
         const pagesNeededForNextLevel = pagesForNextLevel - pagesForCurrentLevel;
         
-        // Safeguard against division by zero (shouldn't happen with current formula)
-        if (pagesNeededForNextLevel <= 0) return 0;
+        // Safeguard: Ensure we don't divide by zero (defensive programming)
+        if (pagesNeededForNextLevel === 0) return 0;
         
         return (pagesIntoCurrentLevel / pagesNeededForNextLevel) * 100;
       };
