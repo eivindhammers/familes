@@ -13,12 +13,15 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
   
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     // Firebase Configuration
     const firebaseConfig = {
@@ -72,6 +75,7 @@
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState('');
       const [showStreakMessage, setShowStreakMessage] = useState(false);
+      const [showLevelUpMessage, setShowLevelUpMessage] = useState(null);
       const [suggestions, setSuggestions] = useState([]);
       const [isSearching, setIsSearching] = useState(false);
       const [searchFocused, setSearchFocused] = useState(false);
@@ -81,10 +85,89 @@
       const [newLeagueName, setNewLeagueName] = useState('');
       const [joinLeagueCode, setJoinLeagueCode] = useState('');
 
+      // Refs to store timeout IDs for cleanup
+      const confettiTimeoutRef = useRef(null);
+      const levelUpMessageTimeoutRef = useRef(null);
+      const streakMessageTimeoutRef = useRef(null);
+      
+      // Queue for managing multiple level-up messages
+      const levelUpQueueRef = useRef([]);
+      const isProcessingLevelUpRef = useRef(false);
+      const levelUpQueueSizeRef = useRef(0);
+
       // Derived state instead of separate showSuggestions state
       const showSuggestions = searchFocused && newBook.title && (suggestions.length > 0 || isSearching);
 
       const clearError = () => error && setError('');
+      
+      /**
+       * Process the level-up message queue sequentially.
+       * Uses 2 seconds per message for multiple level-ups, 4 seconds for a single level-up.
+       * This ensures users see all intermediate level-ups when leveling up multiple times rapidly.
+       */
+      const processLevelUpQueue = () => {
+        if (isProcessingLevelUpRef.current || levelUpQueueRef.current.length === 0) {
+          return;
+        }
+        
+        isProcessingLevelUpRef.current = true;
+        const level = levelUpQueueRef.current.shift();
+        
+        // Determine display duration: 2s for multiple level-ups, 4s for single
+        const displayDuration = levelUpQueueSizeRef.current > 1 ? 2000 : 4000;
+        
+        // Show the level-up message
+        setShowLevelUpMessage(level);
+        
+        // Fire confetti if the library is available
+        if (typeof window.confetti === 'function') {
+          window.confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          // Fire a second burst for more impact
+          // Clear existing timeout if any
+          if (confettiTimeoutRef.current) {
+            clearTimeout(confettiTimeoutRef.current);
+          }
+          confettiTimeoutRef.current = setTimeout(() => {
+            window.confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 }
+            });
+            window.confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 }
+            });
+            confettiTimeoutRef.current = null;
+          }, 250);
+        }
+        
+        // Clear existing timeout if any
+        if (levelUpMessageTimeoutRef.current) {
+          clearTimeout(levelUpMessageTimeoutRef.current);
+        }
+        
+        // Hide message and process next item in queue after appropriate duration
+        levelUpMessageTimeoutRef.current = setTimeout(() => {
+          setShowLevelUpMessage(null);
+          levelUpMessageTimeoutRef.current = null;
+          isProcessingLevelUpRef.current = false;
+          
+          // Process next message in queue if any
+          if (levelUpQueueRef.current.length > 0) {
+            processLevelUpQueue();
+          } else {
+            // Reset queue size when all queued level-ups have been processed
+            levelUpQueueSizeRef.current = 0;
+          }
+        }, displayDuration);
+      };
 
       const deleteBook = async (bookId) => {
         if (!window.confirm('Er du sikker på at du vil slette denne boken?')) return;
@@ -162,6 +245,24 @@
         if (currentProfile.leagues?.length > 0 && !currentLeagueId) {
           setCurrentLeagueId(currentProfile.leagues[0]);
         }
+      }, [currentProfile]);
+
+      // Cleanup timeouts when component unmounts or profile changes
+      useEffect(() => {
+        return () => {
+          if (confettiTimeoutRef.current) {
+            clearTimeout(confettiTimeoutRef.current);
+            confettiTimeoutRef.current = null;
+          }
+          if (levelUpMessageTimeoutRef.current) {
+            clearTimeout(levelUpMessageTimeoutRef.current);
+            levelUpMessageTimeoutRef.current = null;
+          }
+          if (streakMessageTimeoutRef.current) {
+            clearTimeout(streakMessageTimeoutRef.current);
+            streakMessageTimeoutRef.current = null;
+          }
+        };
       }, [currentProfile]);
 
       const loadUserProfiles = async (uid) => {
@@ -442,9 +543,28 @@
         
         setCurrentProfile(updatedProfile);
         
+        // Check for level up(s) - handle multiple levels in case of rapid progression
+        if (newLevel > currentProfile.level) {
+          // Add all intermediate levels to the queue
+          for (let level = currentProfile.level + 1; level <= newLevel; level++) {
+            levelUpQueueRef.current.push(level);
+          }
+          // Store the initial queue size to determine display duration
+          levelUpQueueSizeRef.current = levelUpQueueRef.current.length;
+          // Start processing the queue
+          processLevelUpQueue();
+        }
+        
         if (!wasStreakActive && streakData.currentStreak > 0) {
           setShowStreakMessage(true);
-          setTimeout(() => setShowStreakMessage(false), 3000);
+          // Clear existing timeout if any
+          if (streakMessageTimeoutRef.current) {
+            clearTimeout(streakMessageTimeoutRef.current);
+          }
+          streakMessageTimeoutRef.current = setTimeout(() => {
+            setShowStreakMessage(false);
+            streakMessageTimeoutRef.current = null;
+          }, 3000);
         }
         
         setPageUpdate('');
@@ -659,6 +779,20 @@
                 <div className="bg-orange-50 border-2 border-orange-300 text-orange-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
                   <Flame className="w-5 h-5 text-orange-500" />
                   <span className="font-semibold">Startet streak! Fortsett å lese {DAILY_PAGES_GOAL}+ sider daglig!</span>
+                </div>
+              )}
+              
+              {showLevelUpMessage && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                  <div
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-6 rounded-2xl shadow-2xl flex flex-col items-center gap-2 animate-bounce"
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    <span className="text-4xl">🎉</span>
+                    <span className="text-2xl font-bold">Level {showLevelUpMessage}!</span>
+                    <span className="text-lg">Gratulerer!</span>
+                  </div>
                 </div>
               )}
               
