@@ -610,10 +610,28 @@
         clearError();
       };
 
-      const calculateProgress = (totalXP) => {
+      const calculateProgress = (rawTotalXP) => {
+        // Ensure XP is always treated as a non-negative integer to avoid
+        // fractional/invalid values causing inconsistent progress displays.
+        let totalXP = Number.isFinite(rawTotalXP) ? Math.round(rawTotalXP) : 0;
+        if (totalXP < 0) totalXP = 0;
+
         const currentLevel = getLevelFromXP(totalXP);
-        const xpInCurrentLevel = getXPProgressInCurrentLevel(totalXP, currentLevel);
-        const xpNeededForNextLevel = getXPForNextLevel(currentLevel);
+
+        // Normalize XP values within the current level and for the next level.
+        let xpInCurrentLevel = getXPProgressInCurrentLevel(totalXP, currentLevel);
+        xpInCurrentLevel = Number.isFinite(xpInCurrentLevel) ? Math.round(xpInCurrentLevel) : 0;
+        if (xpInCurrentLevel < 0) xpInCurrentLevel = 0;
+
+        let xpNeededForNextLevel = getXPForNextLevel(currentLevel);
+        xpNeededForNextLevel = Number.isFinite(xpNeededForNextLevel)
+          ? Math.round(xpNeededForNextLevel)
+          : 0;
+
+        // Avoid division by zero or invalid values; treat as no progress.
+        if (xpNeededForNextLevel <= 0) {
+          return 0;
+        }
         return (xpInCurrentLevel / xpNeededForNextLevel) * 100;
       };
 
