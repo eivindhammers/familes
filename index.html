@@ -48,9 +48,10 @@
      * Calculate the total pages required to reach a specific level.
      * Uses a non-linear formula where each level requires progressively more pages.
      * Level 1: 0 pages (starting level)
-     * Level 2: 10 pages
-     * Level 3: 25 pages (10 + 15)
-     * Level 4: 45 pages (25 + 20)
+     * Level 2: 5 pages
+     * Level 3: 15 pages (5 + 10)
+     * Level 4: 30 pages (15 + 15)
+     * Level 5: 50 pages (30 + 20)
      * Formula: Total pages for level N = 5 * (N-1) * N / 2
      */
     const getPagesForLevel = (level) => {
@@ -63,7 +64,7 @@
      * Uses inverse of the non-linear formula to find the level.
      */
     const getLevelFromPages = (totalPages) => {
-      if (totalPages < 0) return 1;
+      if (totalPages <= 0) return 1;
       // Solve: totalPages = 5 * (N-1) * N / 2
       // Rearranging: N^2 - N - (2 * totalPages / 5) = 0
       // Using quadratic formula: N = (1 + sqrt(1 + 8 * totalPages / 5)) / 2
@@ -611,6 +612,10 @@
         const pagesForNextLevel = getPagesForLevel(currentLevel + 1);
         const pagesIntoCurrentLevel = totalPages - pagesForCurrentLevel;
         const pagesNeededForNextLevel = pagesForNextLevel - pagesForCurrentLevel;
+        
+        // Safeguard against division by zero (shouldn't happen with current formula)
+        if (pagesNeededForNextLevel <= 0) return 0;
+        
         return (pagesIntoCurrentLevel / pagesNeededForNextLevel) * 100;
       };
 
