@@ -110,7 +110,7 @@
         }
         
         isProcessingLevelUpRef.current = true;
-        const [level] = levelUpQueueRef.current.splice(0, 1);
+        const level = levelUpQueueRef.current.shift();
         
         // Show the level-up message
         setShowLevelUpMessage(level);
