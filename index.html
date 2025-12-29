@@ -449,27 +449,29 @@
         // Check for level up
         if (newLevel > currentProfile.level) {
           setShowLevelUpMessage(newLevel);
-          // Fire confetti!
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-          // Fire a second burst for more impact
-          setTimeout(() => {
-            confetti({
-              particleCount: 50,
-              angle: 60,
-              spread: 55,
-              origin: { x: 0 }
+          // Fire confetti if the library is available
+          if (typeof window !== 'undefined' && typeof window.confetti === 'function') {
+            window.confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 }
             });
-            confetti({
-              particleCount: 50,
-              angle: 120,
-              spread: 55,
-              origin: { x: 1 }
-            });
-          }, 250);
+            // Fire a second burst for more impact
+            setTimeout(() => {
+              window.confetti({
+                particleCount: 50,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 }
+              });
+              window.confetti({
+                particleCount: 50,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 }
+              });
+            }, 250);
+          }
           setTimeout(() => setShowLevelUpMessage(null), 4000);
         }
         
