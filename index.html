@@ -302,22 +302,31 @@
       }, [currentProfile]);
 
       const loadUserProfiles = async (uid) => {
-        database.ref(`userProfiles/${uid}`).on('value', (snapshot) => {
+        database.ref(`userProfiles/${uid}`).on('value', async (snapshot) => {
           const data = snapshot.val();
           const profilesList = data ? Object.values(data) : [];
           
           // Retroactive level recalculation: Update all profiles to use new formula
+          const updatesToMake = [];
           const updatedProfiles = profilesList.map(profile => {
             const calculatedLevel = getLevelFromPages(profile.totalPages || 0);
             if (calculatedLevel !== profile.level) {
               // Level needs to be updated based on new formula
               const updatedProfile = { ...profile, level: calculatedLevel };
-              // Save updated level back to database
-              saveProfileAndUser(uid, profile.id, updatedProfile);
+              updatesToMake.push({ uid, profileId: profile.id, profile: updatedProfile });
               return updatedProfile;
             }
             return profile;
           });
+          
+          // Batch update all profiles that need level changes
+          if (updatesToMake.length > 0) {
+            await Promise.all(
+              updatesToMake.map(({ uid, profileId, profile }) => 
+                saveProfileAndUser(uid, profileId, profile)
+              )
+            );
+          }
           
           setProfiles(updatedProfiles);
           if (updatedProfiles.length === 1 && !currentProfile) {
@@ -334,26 +343,34 @@
       };
 
       const loadAllUsers = () => {
-        database.ref('users').on('value', (snapshot) => {
+        database.ref('users').on('value', async (snapshot) => {
           const usersData = snapshot.val() || {};
           
           // Retroactive level recalculation for all users in the system
           const updatedUsers = {};
-          let hasUpdates = false;
+          const updatesToMake = [];
           
           Object.entries(usersData).forEach(([userId, user]) => {
             const calculatedLevel = getLevelFromPages(user.totalPages || 0);
             if (calculatedLevel !== user.level) {
               updatedUsers[userId] = { ...user, level: calculatedLevel };
-              // Update the user in the database
-              database.ref(`users/${userId}`).update({ level: calculatedLevel });
-              hasUpdates = true;
+              updatesToMake.push({ userId, level: calculatedLevel });
             } else {
               updatedUsers[userId] = user;
             }
           });
           
-          setUsers(hasUpdates ? updatedUsers : usersData);
+          // Batch update all users that need level changes
+          if (updatesToMake.length > 0) {
+            await Promise.all(
+              updatesToMake.map(({ userId, level }) => 
+                database.ref(`users/${userId}`).update({ level })
+              )
+            );
+            setUsers(updatedUsers);
+          } else {
+            setUsers(usersData);
+          }
         });
       };
 
