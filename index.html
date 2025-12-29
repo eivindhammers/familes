@@ -321,11 +321,15 @@
           
           // Batch update all profiles that need level changes
           if (updatesToMake.length > 0) {
-            await Promise.all(
-              updatesToMake.map(({ uid, profileId, profile }) => 
-                saveProfileAndUser(uid, profileId, profile)
-              )
-            );
+            try {
+              await Promise.all(
+                updatesToMake.map(({ uid, profileId, profile }) => 
+                  saveProfileAndUser(uid, profileId, profile)
+                )
+              );
+            } catch (err) {
+              console.error('Error updating profile levels:', err);
+            }
           }
           
           setProfiles(updatedProfiles);
@@ -362,12 +366,17 @@
           
           // Batch update all users that need level changes
           if (updatesToMake.length > 0) {
-            await Promise.all(
-              updatesToMake.map(({ userId, level }) => 
-                database.ref(`users/${userId}`).update({ level })
-              )
-            );
-            setUsers(updatedUsers);
+            try {
+              await Promise.all(
+                updatesToMake.map(({ userId, level }) => 
+                  database.ref(`users/${userId}`).update({ level })
+                )
+              );
+              setUsers(updatedUsers);
+            } catch (err) {
+              console.error('Error updating user levels:', err);
+              setUsers(usersData);
+            }
           } else {
             setUsers(usersData);
           }
