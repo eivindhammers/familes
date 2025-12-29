@@ -99,14 +99,18 @@
 
       const clearError = () => error && setError('');
       
-      // Process the level-up message queue
+      /**
+       * Process the level-up message queue sequentially.
+       * Each message is displayed for 4 seconds with confetti before showing the next one.
+       * This ensures users see all intermediate level-ups when leveling up multiple times rapidly.
+       */
       const processLevelUpQueue = () => {
         if (isProcessingLevelUpRef.current || levelUpQueueRef.current.length === 0) {
           return;
         }
         
         isProcessingLevelUpRef.current = true;
-        const level = levelUpQueueRef.current.shift();
+        const [level] = levelUpQueueRef.current.splice(0, 1);
         
         // Show the level-up message
         setShowLevelUpMessage(level);
