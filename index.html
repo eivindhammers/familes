@@ -694,10 +694,12 @@
               )}
               
               {showLevelUpMessage && (
-                <div className="bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-indigo-400 text-indigo-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-2 animate-pulse">
-                  <span className="text-2xl">🎉</span>
-                  <span className="font-semibold">Gratulerer! Du nådde Level {showLevelUpMessage}!</span>
-                  <span className="text-2xl">🎉</span>
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                  <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-6 rounded-2xl shadow-2xl flex flex-col items-center gap-2 animate-bounce">
+                    <span className="text-4xl">🎉</span>
+                    <span className="text-2xl font-bold">Level {showLevelUpMessage}!</span>
+                    <span className="text-lg">Gratulerer!</span>
+                  </div>
                 </div>
               )}
               
