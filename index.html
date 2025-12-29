@@ -305,9 +305,23 @@
         database.ref(`userProfiles/${uid}`).on('value', (snapshot) => {
           const data = snapshot.val();
           const profilesList = data ? Object.values(data) : [];
-          setProfiles(profilesList);
-          if (profilesList.length === 1 && !currentProfile) {
-            setCurrentProfile(profilesList[0]);
+          
+          // Retroactive level recalculation: Update all profiles to use new formula
+          const updatedProfiles = profilesList.map(profile => {
+            const calculatedLevel = getLevelFromPages(profile.totalPages || 0);
+            if (calculatedLevel !== profile.level) {
+              // Level needs to be updated based on new formula
+              const updatedProfile = { ...profile, level: calculatedLevel };
+              // Save updated level back to database
+              saveProfileAndUser(uid, profile.id, updatedProfile);
+              return updatedProfile;
+            }
+            return profile;
+          });
+          
+          setProfiles(updatedProfiles);
+          if (updatedProfiles.length === 1 && !currentProfile) {
+            setCurrentProfile(updatedProfiles[0]);
           }
           setLoading(false);
         });
@@ -320,7 +334,27 @@
       };
 
       const loadAllUsers = () => {
-        database.ref('users').on('value', (snapshot) => setUsers(snapshot.val() || {}));
+        database.ref('users').on('value', (snapshot) => {
+          const usersData = snapshot.val() || {};
+          
+          // Retroactive level recalculation for all users in the system
+          const updatedUsers = {};
+          let hasUpdates = false;
+          
+          Object.entries(usersData).forEach(([userId, user]) => {
+            const calculatedLevel = getLevelFromPages(user.totalPages || 0);
+            if (calculatedLevel !== user.level) {
+              updatedUsers[userId] = { ...user, level: calculatedLevel };
+              // Update the user in the database
+              database.ref(`users/${userId}`).update({ level: calculatedLevel });
+              hasUpdates = true;
+            } else {
+              updatedUsers[userId] = user;
+            }
+          });
+          
+          setUsers(hasUpdates ? updatedUsers : usersData);
+        });
       };
 
       const loadLeagues = () => {
