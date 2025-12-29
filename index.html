@@ -473,7 +473,7 @@
         if (newLevel > currentProfile.level) {
           setShowLevelUpMessage(newLevel);
           // Fire confetti if the library is available
-          if (typeof window !== 'undefined' && typeof window.confetti === 'function') {
+          if (typeof window.confetti === 'function') {
             window.confetti({
               particleCount: 100,
               spread: 70,
