@@ -162,6 +162,9 @@
           // Process next message in queue if any
           if (levelUpQueueRef.current.length > 0) {
             processLevelUpQueue();
+          } else {
+            // Reset queue size when all queued level-ups have been processed
+            levelUpQueueSizeRef.current = 0;
           }
         }, displayDuration);
       };
