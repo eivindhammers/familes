@@ -355,7 +355,7 @@
       const updateLeagueLeaderboard = async (leagueId, profileId, profile = currentProfile) => {
         await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set({
           name: profile.name,
-          totalXP: profile.totalXP,
+          totalXP: profile.totalXP || profile.totalPages || 0,
           level: profile.level,
           currentStreak: profile.currentStreak,
           longestStreak: profile.longestStreak
