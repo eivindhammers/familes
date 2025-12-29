@@ -862,7 +862,7 @@
                   />
                 </div>
                 <div className="text-sm text-gray-600 text-center">
-                  {Math.floor(getXPProgressInCurrentLevel(currentProfile.totalXP, currentProfile.level))} / {getXPForNextLevel(currentProfile.level)} XP til Level {currentProfile.level + 1}
+                  {Math.floor(getXPProgressInCurrentLevel(currentProfile.totalXP || 0, currentProfile.level))} / {getXPForNextLevel(currentProfile.level)} XP til Level {currentProfile.level + 1}
                 </div>
               </div>
               
