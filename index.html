@@ -74,6 +74,12 @@
       const [suggestions, setSuggestions] = useState([]);
       const [isSearching, setIsSearching] = useState(false);
       const [showSuggestions, setShowSuggestions] = useState(false);
+      const [leagues, setLeagues] = useState({});
+      const [currentLeagueId, setCurrentLeagueId] = useState(null);
+      const [showLeagueManager, setShowLeagueManager] = useState(false);
+      const [leagueAction, setLeagueAction] = useState('join'); // 'join' or 'create'
+      const [newLeagueName, setNewLeagueName] = useState('');
+      const [joinLeagueCode, setJoinLeagueCode] = useState('');
 
       const deleteBook = async (bookId) => {
         if (window.confirm('Er du sikker på at du vil slette denne boken?')) {
@@ -157,6 +163,11 @@
         if (currentProfile) {
           loadProfileBooks(currentProfile.id);
           loadAllUsers();
+          loadLeagues();
+          // Set default league if user has leagues
+          if (currentProfile.leagues && currentProfile.leagues.length > 0 && !currentLeagueId) {
+            setCurrentLeagueId(currentProfile.leagues[0]);
+          }
         }
       }, [currentProfile]);
 
@@ -191,6 +202,100 @@
           const data = snapshot.val();
           setUsers(data || {});
         });
+      };
+
+      const loadLeagues = () => {
+        const leaguesRef = database.ref('leagues');
+        leaguesRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          setLeagues(data || {});
+        });
+      };
+
+      const generateLeagueCode = () => {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+      };
+
+      const createLeague = async (leagueName) => {
+        const leagueId = `league_${Date.now()}`;
+        const leagueCode = generateLeagueCode();
+        
+        const newLeague = {
+          id: leagueId,
+          name: leagueName,
+          code: leagueCode,
+          createdBy: authUser.uid,
+          createdAt: new Date().toISOString(),
+          members: {}
+        };
+        
+        await database.ref(`leagues/${leagueId}`).set(newLeague);
+        return leagueId;
+      };
+
+      const joinLeague = async (profileId, leagueId) => {
+        // Add profile to league members
+        await database.ref(`leagues/${leagueId}/members/${profileId}`).set(true);
+        
+        // Add league to profile's leagues array
+        const currentLeagues = currentProfile.leagues || [];
+        if (!currentLeagues.includes(leagueId)) {
+          currentLeagues.push(leagueId);
+          const updatedProfile = { ...currentProfile, leagues: currentLeagues };
+          await saveProfile(authUser.uid, profileId, updatedProfile);
+          setCurrentProfile(updatedProfile);
+        }
+        
+        // Update league leaderboard
+        await updateLeagueLeaderboard(leagueId, profileId);
+      };
+
+      const updateLeagueLeaderboard = async (leagueId, profileId) => {
+        const leaderboardData = {
+          name: currentProfile.name,
+          totalPages: currentProfile.totalPages,
+          level: currentProfile.level,
+          currentStreak: currentProfile.currentStreak,
+          longestStreak: currentProfile.longestStreak
+        };
+        await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set(leaderboardData);
+      };
+
+      const handleLeagueAction = async () => {
+        if (leagueAction === 'create') {
+          if (!newLeagueName.trim()) {
+            setError('Vennligst skriv inn et liganavn');
+            return;
+          }
+          const leagueId = await createLeague(newLeagueName.trim());
+          await joinLeague(currentProfile.id, leagueId);
+          setCurrentLeagueId(leagueId);
+          setNewLeagueName('');
+          setShowLeagueManager(false);
+          setError('');
+        } else {
+          if (!joinLeagueCode.trim()) {
+            setError('Vennligst skriv inn en ligakode');
+            return;
+          }
+          
+          // Find league by code
+          const leagueEntry = Object.entries(leagues).find(
+            ([id, league]) => league.code === joinLeagueCode.toUpperCase()
+          );
+          
+          if (!leagueEntry) {
+            setError('Ugyldig ligakode');
+            return;
+          }
+          
+          const [leagueId] = leagueEntry;
+          await joinLeague(currentProfile.id, leagueId);
+          setCurrentLeagueId(leagueId);
+          setJoinLeagueCode('');
+          setShowLeagueManager(false);
+          setError('');
+        }
       };
 
       const saveProfile = async (uid, profileId, profileData) => {
@@ -287,6 +392,7 @@
               longestStreak: 0,
               lastReadDate: null,
               pagesReadToday: 0,
+              leagues: [],
               createdAt: new Date().toISOString()
             };
             await saveProfile(userCredential.user.uid, profileId, defaultProfile);
@@ -327,6 +433,7 @@
           longestStreak: 0,
           lastReadDate: null,
           pagesReadToday: 0,
+          leagues: [],
           createdAt: new Date().toISOString()
         };
 
@@ -421,6 +528,13 @@
         await saveUserToGlobalList(currentProfile.id, updatedProfile);
         await saveReadingEntry(currentProfile.id, bookId, readingEntry);
         
+        // Update all league leaderboards this profile is in
+        if (currentProfile.leagues && currentProfile.leagues.length > 0) {
+          for (const leagueId of currentProfile.leagues) {
+            await updateLeagueLeaderboard(leagueId, currentProfile.id);
+          }
+        }
+        
         setCurrentProfile(updatedProfile);
         
         if (!wasStreakActive && streakData.currentStreak > 0) {
@@ -439,9 +553,25 @@
       };
 
       const getLeaderboard = () => {
-        return Object.values(users)
+        if (!currentLeagueId || !leagues[currentLeagueId]) {
+          return [];
+        }
+        
+        const league = leagues[currentLeagueId];
+        const leagueMembers = league.members || {};
+        
+        return Object.keys(leagueMembers)
+          .map(profileId => users[profileId])
+          .filter(user => user) // Filter out any undefined users
           .sort((a, b) => b.totalPages - a.totalPages)
           .map((user, index) => ({ ...user, rank: index + 1 }));
+      };
+
+      const getUserLeagues = () => {
+        if (!currentProfile || !currentProfile.leagues) return [];
+        return currentProfile.leagues
+          .map(leagueId => leagues[leagueId])
+          .filter(league => league); // Filter out any undefined leagues
       };
 
       if (loading) {
@@ -885,46 +1015,173 @@
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">FamiLes ledertavle</h2>
-                <div className="space-y-3">
-                  {getLeaderboard().map(user => (
-                    <div
-                      key={user.id}
-                      className={`flex items-center justify-between p-4 rounded-lg ${
-                        user.id === currentProfile.id
-                          ? 'bg-indigo-50 border-2 border-indigo-300'
-                          : 'bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`text-2xl font-bold ${
-                          user.rank === 1 ? 'text-yellow-500' :
-                          user.rank === 2 ? 'text-gray-400' :
-                          user.rank === 3 ? 'text-amber-600' :
-                          'text-gray-400'
-                        }`}>
-                          #{user.rank}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-800 flex items-center gap-2">
-                            {user.name}
-                            {user.currentStreak > 0 && (
-                              <span className="flex items-center gap-1 text-orange-500 text-sm">
-                                <Flame className="w-4 h-4" />
-                                {user.currentStreak}
-                              </span>
-                            )}
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-gray-800">Ledertavle</h2>
+                  <button
+                    onClick={() => setShowLeagueManager(!showLeagueManager)}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm"
+                  >
+                    {showLeagueManager ? 'Lukk' : 'Administrer ligaer'}
+                  </button>
+                </div>
+
+                {showLeagueManager && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-bold text-gray-800 mb-3">Mine ligaer</h3>
+                    {getUserLeagues().length > 0 ? (
+                      <div className="space-y-2 mb-4">
+                        {getUserLeagues().map(league => (
+                          <div key={league.id} className="flex justify-between items-center p-3 bg-white rounded border">
+                            <div>
+                              <div className="font-semibold">{league.name}</div>
+                              <div className="text-sm text-gray-500">Kode: {league.code}</div>
+                            </div>
+                            <button
+                              onClick={() => setCurrentLeagueId(league.id)}
+                              className={`px-3 py-1 rounded text-sm ${
+                                currentLeagueId === league.id
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {currentLeagueId === league.id ? 'Aktiv' : 'Velg'}
+                            </button>
                           </div>
-                          <div className="text-sm text-gray-500">Level {user.level}</div>
-                        </div>
+                        ))}
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
-                        <div className="text-sm text-gray-500">sider lest</div>
+                    ) : (
+                      <p className="text-gray-500 text-sm mb-4">Du er ikke med i noen ligaer ennå</p>
+                    )}
+
+                    <div className="border-t pt-4">
+                      <div className="flex gap-2 mb-3">
+                        <button
+                          onClick={() => setLeagueAction('join')}
+                          className={`flex-1 py-2 rounded ${
+                            leagueAction === 'join'
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          Bli med i liga
+                        </button>
+                        <button
+                          onClick={() => setLeagueAction('create')}
+                          className={`flex-1 py-2 rounded ${
+                            leagueAction === 'create'
+                              ? 'bg-indigo-600 text-white'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          Opprett ny liga
+                        </button>
+                      </div>
+
+                      {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3 text-sm">
+                          {error}
+                        </div>
+                      )}
+
+                      {leagueAction === 'create' ? (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Liganavn (f.eks. Hansen Familie)"
+                            value={newLeagueName}
+                            onChange={(e) => setNewLeagueName(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                          />
+                          <button
+                            onClick={handleLeagueAction}
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                          >
+                            Opprett
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Ligakode"
+                            value={joinLeagueCode}
+                            onChange={(e) => setJoinLeagueCode(e.target.value.toUpperCase())}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm uppercase"
+                          />
+                          <button
+                            onClick={handleLeagueAction}
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                          >
+                            Bli med
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {currentLeagueId && leagues[currentLeagueId] ? (
+                  <>
+                    <div className="mb-4 p-3 bg-indigo-50 rounded-lg">
+                      <div className="text-sm text-indigo-600 font-semibold">
+                        {leagues[currentLeagueId].name}
+                      </div>
+                      <div className="text-xs text-indigo-500">
+                        Kode: {leagues[currentLeagueId].code}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="space-y-3">
+                      {getLeaderboard().map(user => (
+                        <div
+                          key={user.id}
+                          className={`flex items-center justify-between p-4 rounded-lg ${
+                            user.id === currentProfile.id
+                              ? 'bg-indigo-50 border-2 border-indigo-300'
+                              : 'bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`text-2xl font-bold ${
+                              user.rank === 1 ? 'text-yellow-500' :
+                              user.rank === 2 ? 'text-gray-400' :
+                              user.rank === 3 ? 'text-amber-600' :
+                              'text-gray-400'
+                            }`}>
+                              #{user.rank}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-800 flex items-center gap-2">
+                                {user.name}
+                                {user.currentStreak > 0 && (
+                                  <span className="flex items-center gap-1 text-orange-500 text-sm">
+                                    <Flame className="w-4 h-4" />
+                                    {user.currentStreak}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500">Level {user.level}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
+                            <div className="text-sm text-gray-500">sider lest</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="mb-2">Du må være med i en liga for å se ledertavlen</p>
+                    <button
+                      onClick={() => setShowLeagueManager(true)}
+                      className="text-indigo-600 hover:text-indigo-700 font-semibold"
+                    >
+                      Bli med i eller opprett en liga
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
