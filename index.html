@@ -51,6 +51,7 @@
     const LogIn = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>;
     const Flame = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>;
     const Trash2 = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
+    const Settings = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
     
     const BookContestApp = () => {
       const [authUser, setAuthUser] = useState(null);
@@ -73,39 +74,37 @@
       const [showStreakMessage, setShowStreakMessage] = useState(false);
       const [suggestions, setSuggestions] = useState([]);
       const [isSearching, setIsSearching] = useState(false);
-      const [showSuggestions, setShowSuggestions] = useState(false);
+      const [searchFocused, setSearchFocused] = useState(false);
       const [leagues, setLeagues] = useState({});
       const [currentLeagueId, setCurrentLeagueId] = useState(null);
-      const [showLeagueManager, setShowLeagueManager] = useState(false);
-      const [leagueAction, setLeagueAction] = useState('join'); // 'join' or 'create'
+      const [leagueAction, setLeagueAction] = useState('join');
       const [newLeagueName, setNewLeagueName] = useState('');
       const [joinLeagueCode, setJoinLeagueCode] = useState('');
 
+      // Derived state instead of separate showSuggestions state
+      const showSuggestions = searchFocused && newBook.title && (suggestions.length > 0 || isSearching);
+
+      const clearError = () => error && setError('');
+
       const deleteBook = async (bookId) => {
-        if (window.confirm('Er du sikker på at du vil slette denne boken?')) {
-          const updatedBooks = books.filter(book => book.id !== bookId);
-          await saveBooks(currentProfile.id, updatedBooks);
-          setBooks(updatedBooks);
-          setError('');
-        }
+        if (!window.confirm('Er du sikker på at du vil slette denne boken?')) return;
+        const updatedBooks = books.filter(book => book.id !== bookId);
+        await saveBooks(currentProfile.id, updatedBooks);
+        setBooks(updatedBooks);
+        clearError();
       };
       
-      const getSecureUrl = (url) => {
-        if (!url) return '';
-        return url.replace('http://', 'https://');
-      };
+      const getSecureUrl = (url) => url ? url.replace('http://', 'https://') : '';
       
       useEffect(() => {
-        const timeoutId = setTimeout(() => {
-          if (newBook.title && newBook.title.length > 2 && showSuggestions) {
-            searchGoogleBooks(newBook.title);
-          } else if (!newBook.title) {
-            setSuggestions([]);
-          }
-        }, 500);
-      
+        if (!newBook.title || newBook.title.length <= 2 || !searchFocused) {
+          if (!newBook.title) setSuggestions([]);
+          return;
+        }
+        
+        const timeoutId = setTimeout(() => searchGoogleBooks(newBook.title), 500);
         return () => clearTimeout(timeoutId);
-      }, [newBook.title, showSuggestions]);
+      }, [newBook.title, searchFocused]);
       
       const searchGoogleBooks = async (query) => {
         setIsSearching(true);
@@ -115,19 +114,15 @@
           );
           const data = await response.json();
           
-          if (data.items) {
-            setSuggestions(data.items.map(item => ({
-              id: item.id,
-              title: item.volumeInfo.title,
-              author: item.volumeInfo.authors ? item.volumeInfo.authors.join(', ') : 'Unknown',
-              pages: item.volumeInfo.pageCount || '',
-              thumbnail: getSecureUrl(item.volumeInfo.imageLinks?.thumbnail || item.volumeInfo.imageLinks?.smallThumbnail)
-            })));
-          } else {
-            setSuggestions([]);
-          }
-        } catch (error) {
-          console.error("Error searching books:", error);
+          setSuggestions(data.items?.map(item => ({
+            id: item.id,
+            title: item.volumeInfo.title,
+            author: item.volumeInfo.authors?.join(', ') || 'Unknown',
+            pages: item.volumeInfo.pageCount || '',
+            thumbnail: getSecureUrl(item.volumeInfo.imageLinks?.thumbnail || item.volumeInfo.imageLinks?.smallThumbnail)
+          })) || []);
+        } catch (err) {
+          console.error("Error searching books:", err);
         }
         setIsSearching(false);
       };
@@ -140,189 +135,142 @@
           coverUrl: book.thumbnail
         });
         setSuggestions([]);
-        setShowSuggestions(false);
+        setSearchFocused(false);
       };
 
       useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
+          setAuthUser(user);
           if (user) {
-            setAuthUser(user);
             await loadUserProfiles(user.uid);
           } else {
-            setAuthUser(null);
             setProfiles([]);
             setCurrentProfile(null);
             setLoading(false);
           }
         });
-        
         return () => unsubscribe();
       }, []);
 
       useEffect(() => {
-        if (currentProfile) {
-          loadProfileBooks(currentProfile.id);
-          loadAllUsers();
-          loadLeagues();
-          // Set default league if user has leagues
-          if (currentProfile.leagues && currentProfile.leagues.length > 0 && !currentLeagueId) {
-            setCurrentLeagueId(currentProfile.leagues[0]);
-          }
+        if (!currentProfile) return;
+        
+        loadProfileBooks(currentProfile.id);
+        loadAllUsers();
+        loadLeagues();
+        
+        if (currentProfile.leagues?.length > 0 && !currentLeagueId) {
+          setCurrentLeagueId(currentProfile.leagues[0]);
         }
       }, [currentProfile]);
 
       const loadUserProfiles = async (uid) => {
-        const profilesRef = database.ref(`userProfiles/${uid}`);
-        profilesRef.on('value', (snapshot) => {
+        database.ref(`userProfiles/${uid}`).on('value', (snapshot) => {
           const data = snapshot.val();
-          if (data) {
-            const profilesList = Object.values(data);
-            setProfiles(profilesList);
-            if (profilesList.length === 1 && !currentProfile) {
-              setCurrentProfile(profilesList[0]);
-            }
-          } else {
-            setProfiles([]);
+          const profilesList = data ? Object.values(data) : [];
+          setProfiles(profilesList);
+          if (profilesList.length === 1 && !currentProfile) {
+            setCurrentProfile(profilesList[0]);
           }
           setLoading(false);
         });
       };
 
       const loadProfileBooks = (profileId) => {
-        const booksRef = database.ref(`books/${profileId}`);
-        booksRef.on('value', (snapshot) => {
-          const data = snapshot.val();
-          setBooks(data ? Object.values(data) : []);
+        database.ref(`books/${profileId}`).on('value', (snapshot) => {
+          setBooks(snapshot.val() ? Object.values(snapshot.val()) : []);
         });
       };
 
       const loadAllUsers = () => {
-        const usersRef = database.ref('users');
-        usersRef.on('value', (snapshot) => {
-          const data = snapshot.val();
-          setUsers(data || {});
-        });
+        database.ref('users').on('value', (snapshot) => setUsers(snapshot.val() || {}));
       };
 
       const loadLeagues = () => {
-        const leaguesRef = database.ref('leagues');
-        leaguesRef.on('value', (snapshot) => {
-          const data = snapshot.val();
-          setLeagues(data || {});
-        });
+        database.ref('leagues').on('value', (snapshot) => setLeagues(snapshot.val() || {}));
       };
 
-      const generateLeagueCode = () => {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
-      };
+      const generateLeagueCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
       const createLeague = async (leagueName) => {
         const leagueId = `league_${Date.now()}`;
-        const leagueCode = generateLeagueCode();
-        
-        const newLeague = {
+        await database.ref(`leagues/${leagueId}`).set({
           id: leagueId,
           name: leagueName,
-          code: leagueCode,
+          code: generateLeagueCode(),
           createdBy: authUser.uid,
           createdAt: new Date().toISOString(),
           members: {}
-        };
-        
-        await database.ref(`leagues/${leagueId}`).set(newLeague);
+        });
         return leagueId;
       };
 
+      // Combined save function for profile and global user list
+      const saveProfileAndUser = async (uid, profileId, profileData) => {
+        await Promise.all([
+          database.ref(`userProfiles/${uid}/${profileId}`).set(profileData),
+          database.ref(`users/${profileId}`).set(profileData)
+        ]);
+      };
+
+      const updateLeagueLeaderboard = async (leagueId, profileId, profile = currentProfile) => {
+        await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set({
+          name: profile.name,
+          totalPages: profile.totalPages,
+          level: profile.level,
+          currentStreak: profile.currentStreak,
+          longestStreak: profile.longestStreak
+        });
+      };
+
       const joinLeague = async (profileId, leagueId) => {
-        // Add profile to league members
         await database.ref(`leagues/${leagueId}/members/${profileId}`).set(true);
         
-        // Add league to profile's leagues array
         const currentLeagues = currentProfile.leagues || [];
         if (!currentLeagues.includes(leagueId)) {
-          currentLeagues.push(leagueId);
-          const updatedProfile = { ...currentProfile, leagues: currentLeagues };
-          await saveProfile(authUser.uid, profileId, updatedProfile);
+          const updatedProfile = { ...currentProfile, leagues: [...currentLeagues, leagueId] };
+          await saveProfileAndUser(authUser.uid, profileId, updatedProfile);
           setCurrentProfile(updatedProfile);
         }
         
-        // Update league leaderboard
         await updateLeagueLeaderboard(leagueId, profileId);
       };
 
-      const updateLeagueLeaderboard = async (leagueId, profileId) => {
-        const leaderboardData = {
-          name: currentProfile.name,
-          totalPages: currentProfile.totalPages,
-          level: currentProfile.level,
-          currentStreak: currentProfile.currentStreak,
-          longestStreak: currentProfile.longestStreak
-        };
-        await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set(leaderboardData);
-      };
-
       const handleLeagueAction = async () => {
+        clearError();
+        
         if (leagueAction === 'create') {
-          if (!newLeagueName.trim()) {
-            setError('Vennligst skriv inn et liganavn');
-            return;
-          }
+          if (!newLeagueName.trim()) return setError('Vennligst skriv inn et liganavn');
           const leagueId = await createLeague(newLeagueName.trim());
           await joinLeague(currentProfile.id, leagueId);
           setCurrentLeagueId(leagueId);
           setNewLeagueName('');
-          setShowLeagueManager(false);
-          setError('');
         } else {
-          if (!joinLeagueCode.trim()) {
-            setError('Vennligst skriv inn en ligakode');
-            return;
-          }
+          if (!joinLeagueCode.trim()) return setError('Vennligst skriv inn en ligakode');
           
-          // Find league by code
           const leagueEntry = Object.entries(leagues).find(
-            ([id, league]) => league.code === joinLeagueCode.toUpperCase()
+            ([, league]) => league.code === joinLeagueCode.toUpperCase()
           );
           
-          if (!leagueEntry) {
-            setError('Ugyldig ligakode');
-            return;
-          }
+          if (!leagueEntry) return setError('Ugyldig ligakode');
           
-          const [leagueId] = leagueEntry;
-          await joinLeague(currentProfile.id, leagueId);
-          setCurrentLeagueId(leagueId);
+          await joinLeague(currentProfile.id, leagueEntry[0]);
+          setCurrentLeagueId(leagueEntry[0]);
           setJoinLeagueCode('');
-          setShowLeagueManager(false);
-          setError('');
         }
-      };
-
-      const saveProfile = async (uid, profileId, profileData) => {
-        await database.ref(`userProfiles/${uid}/${profileId}`).set(profileData);
-      };
-
-      const saveUserToGlobalList = async (profileId, userData) => {
-        await database.ref(`users/${profileId}`).set(userData);
+        setShowLeagueManager(false);
       };
 
       const saveBooks = async (profileId, booksArray) => {
-        const booksObj = {};
-        booksArray.forEach(book => {
-          booksObj[book.id] = book;
-        });
+        const booksObj = Object.fromEntries(booksArray.map(book => [book.id, book]));
         await database.ref(`books/${profileId}`).set(booksObj);
       };
 
       const saveReadingEntry = async (profileId, bookId, entry) => {
-        const entryRef = database.ref(`readingHistory/${profileId}/${bookId}`).push();
-        await entryRef.set(entry);
+        await database.ref(`readingHistory/${profileId}/${bookId}`).push().set(entry);
       };
 
-      const getTodayString = () => {
-        const today = new Date();
-        return today.toISOString().split('T')[0];
-      };
+      const getTodayString = () => new Date().toISOString().split('T')[0];
 
       const checkAndUpdateStreak = (profile, pagesToday) => {
         const today = getTodayString();
@@ -330,58 +278,38 @@
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayString = yesterday.toISOString().split('T')[0];
 
-        let currentStreak = profile.currentStreak || 0;
-        let longestStreak = profile.longestStreak || 0;
-        let lastReadDate = profile.lastReadDate || null;
-        let pagesReadToday = profile.pagesReadToday || 0;
+        let { currentStreak = 0, longestStreak = 0, lastReadDate = null, pagesReadToday = 0 } = profile;
 
-        if (lastReadDate === today) {
-          pagesReadToday += pagesToday;
-        } else {
-          pagesReadToday = pagesToday;
-        }
+        pagesReadToday = lastReadDate === today ? pagesReadToday + pagesToday : pagesToday;
 
         if (pagesReadToday >= DAILY_PAGES_GOAL) {
-          if (lastReadDate === yesterdayString || lastReadDate === today) {
-            if (lastReadDate === yesterdayString) {
-              currentStreak += 1;
-            }
-          } else if (lastReadDate === null || lastReadDate < yesterdayString) {
+          if (lastReadDate === yesterdayString) {
+            currentStreak += 1;
+          } else if (lastReadDate !== today) {
             currentStreak = 1;
           }
-
-          if (currentStreak > longestStreak) {
-            longestStreak = currentStreak;
-          }
+          longestStreak = Math.max(currentStreak, longestStreak);
         } else if (lastReadDate && lastReadDate < yesterdayString) {
           currentStreak = 0;
         }
 
-        return {
-          currentStreak,
-          longestStreak,
-          lastReadDate: today,
-          pagesReadToday
-        };
+        return { currentStreak, longestStreak, lastReadDate: today, pagesReadToday };
       };
 
       const handleAuth = async () => {
-        if (isRegistering) {
-          if (!email || !password || !registerName) {
-            setError('Vennligst fyll inn alle felt');
-            return;
-          }
-        } else {
-          if (!email || !password) {
-            setError('Vennligst fyll inn e-post og passord');
-            return;
-          }
+        clearError();
+        
+        if (isRegistering && (!email || !password || !registerName)) {
+          return setError('Vennligst fyll inn alle felt');
+        }
+        if (!isRegistering && (!email || !password)) {
+          return setError('Vennligst fyll inn e-post og passord');
         }
 
         try {
           if (isRegistering) {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const profileId = `${userCredential.user.uid}_main`;
+            const { user } = await auth.createUserWithEmailAndPassword(email, password);
+            const profileId = `${user.uid}_main`;
             const defaultProfile = {
               id: profileId,
               name: registerName.trim(),
@@ -395,13 +323,10 @@
               leagues: [],
               createdAt: new Date().toISOString()
             };
-            await saveProfile(userCredential.user.uid, profileId, defaultProfile);
-            await saveUserToGlobalList(profileId, defaultProfile);
-            setError('');
+            await saveProfileAndUser(user.uid, profileId, defaultProfile);
             setRegisterName('');
           } else {
             await auth.signInWithEmailAndPassword(email, password);
-            setError('');
           }
           setEmail('');
           setPassword('');
@@ -417,10 +342,7 @@
       };
 
       const createNewProfile = async () => {
-        if (!newProfileName.trim()) {
-          setError('Vennligst skriv inn et navn');
-          return;
-        }
+        if (!newProfileName.trim()) return setError('Vennligst skriv inn et navn');
 
         const profileId = `${authUser.uid}_${Date.now()}`;
         const newProfile = {
@@ -437,11 +359,10 @@
           createdAt: new Date().toISOString()
         };
 
-        await saveProfile(authUser.uid, profileId, newProfile);
-        await saveUserToGlobalList(profileId, newProfile);
+        await saveProfileAndUser(authUser.uid, profileId, newProfile);
         setNewProfileName('');
         setShowProfileManager(false);
-        setError('');
+        clearError();
       };
 
       const switchProfile = (profile) => {
@@ -451,10 +372,7 @@
       };
 
       const addBook = async () => {
-        if (!newBook.title || !newBook.author) {
-          setError('Skriv inn tittel og forfatter');
-          return;
-        }
+        if (!newBook.title || !newBook.author) return setError('Skriv inn tittel og forfatter');
       
         const book = {
           id: Date.now().toString(),
@@ -466,42 +384,35 @@
           startedAt: new Date().toISOString()
         };
       
-        const updatedBooks = [...books, book];
-        await saveBooks(currentProfile.id, updatedBooks);
+        await saveBooks(currentProfile.id, [...books, book]);
         setNewBook({ title: '', author: '', pages: '', coverUrl: '' }); 
-        setError('');
+        clearError();
       };
 
       const updatePages = async (bookId) => {
         const newTotalRead = parseInt(pageUpdate);
-        
         if (isNaN(newTotalRead) || newTotalRead < 0) {
-          setError('Vennligst skriv inn et gyldig antall leste sider');
-          return;
+          return setError('Vennligst skriv inn et gyldig antall leste sider');
         }
       
         const targetBook = books.find(b => b.id === bookId);
         const difference = newTotalRead - targetBook.pagesRead;
         
-        // Don't log if no actual change
         if (difference === 0) {
           setPageUpdate('');
           setSelectedBook(null);
           return;
         }
       
-        const updatedBooks = books.map(book => {
-          if (book.id === bookId) {
-            const total = book.totalPages > 0 ? Math.min(newTotalRead, book.totalPages) : newTotalRead;
-            return { ...book, pagesRead: total };
-          }
-          return book;
-        });
+        const updatedBooks = books.map(book => 
+          book.id === bookId 
+            ? { ...book, pagesRead: book.totalPages > 0 ? Math.min(newTotalRead, book.totalPages) : newTotalRead }
+            : book
+        );
       
         const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
         const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
-      
-        const streakData = checkAndUpdateStreak(currentProfile, difference > 0 ? difference : 0);
+        const streakData = checkAndUpdateStreak(currentProfile, Math.max(0, difference));
         const wasStreakActive = currentProfile.currentStreak > 0;
         
         const updatedProfile = {
@@ -510,30 +421,24 @@
           level: newLevel,
           ...streakData
         };
-
-        // Create reading history entry
-        const readingEntry = {
-          timestamp: new Date().toISOString(),
-          bookTitle: targetBook.title,
-          bookAuthor: targetBook.author,
-          previousTotal: targetBook.pagesRead,
-          newTotal: newTotalRead,
-          pagesAdded: difference,
-          profileName: currentProfile.name,
-          levelAtTime: newLevel
-        };
       
-        await saveBooks(currentProfile.id, updatedBooks);
-        await saveProfile(authUser.uid, currentProfile.id, updatedProfile);
-        await saveUserToGlobalList(currentProfile.id, updatedProfile);
-        await saveReadingEntry(currentProfile.id, bookId, readingEntry);
-        
-        // Update all league leaderboards this profile is in
-        if (currentProfile.leagues && currentProfile.leagues.length > 0) {
-          for (const leagueId of currentProfile.leagues) {
-            await updateLeagueLeaderboard(leagueId, currentProfile.id);
-          }
-        }
+        await Promise.all([
+          saveBooks(currentProfile.id, updatedBooks),
+          saveProfileAndUser(authUser.uid, currentProfile.id, updatedProfile),
+          saveReadingEntry(currentProfile.id, bookId, {
+            timestamp: new Date().toISOString(),
+            bookTitle: targetBook.title,
+            bookAuthor: targetBook.author,
+            previousTotal: targetBook.pagesRead,
+            newTotal: newTotalRead,
+            pagesAdded: difference,
+            profileName: currentProfile.name,
+            levelAtTime: newLevel
+          }),
+          ...(currentProfile.leagues?.map(leagueId => 
+            updateLeagueLeaderboard(leagueId, currentProfile.id, updatedProfile)
+          ) || [])
+        ]);
         
         setCurrentProfile(updatedProfile);
         
@@ -544,35 +449,25 @@
         
         setPageUpdate('');
         setSelectedBook(null);
-        setError('');
+        clearError();
       };
 
-      const calculateProgress = (totalPages) => {
-        const currentLevelPages = totalPages % PAGES_PER_LEVEL;
-        return (currentLevelPages / PAGES_PER_LEVEL) * 100;
-      };
+      const calculateProgress = (totalPages) => ((totalPages % PAGES_PER_LEVEL) / PAGES_PER_LEVEL) * 100;
 
       const getLeaderboard = () => {
-        if (!currentLeagueId || !leagues[currentLeagueId]) {
-          return [];
-        }
-        
         const league = leagues[currentLeagueId];
-        const leagueMembers = league.members || {};
+        if (!league) return [];
         
-        return Object.keys(leagueMembers)
+        return Object.keys(league.members || {})
           .map(profileId => users[profileId])
-          .filter(user => user) // Filter out any undefined users
+          .filter(Boolean)
           .sort((a, b) => b.totalPages - a.totalPages)
           .map((user, index) => ({ ...user, rank: index + 1 }));
       };
 
-      const getUserLeagues = () => {
-        if (!currentProfile || !currentProfile.leagues) return [];
-        return currentProfile.leagues
-          .map(leagueId => leagues[leagueId])
-          .filter(league => league); // Filter out any undefined leagues
-      };
+      const getUserLeagues = () => (currentProfile?.leagues || [])
+        .map(leagueId => leagues[leagueId])
+        .filter(Boolean);
 
       if (loading) {
         return (
@@ -838,6 +733,17 @@
                 <Users className="w-5 h-5" />
                 Ledertavle
               </button>
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+                  activeTab === 'admin'
+                    ? 'bg-white shadow-md text-indigo-600'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+                Ligaer
+              </button>
             </div>
 
             {activeTab === 'myBooks' ? (
@@ -857,13 +763,10 @@
                         value={newBook.title}
                         onChange={(e) => {
                           setNewBook({ ...newBook, title: e.target.value });
-                          setShowSuggestions(true);
+                          setSearchFocused(true);
                         }}
-                        onFocus={() => setShowSuggestions(true)}
-                        onBlur={() => {
-                          // Delay to allow click on suggestion
-                          setTimeout(() => setShowSuggestions(false), 200);
-                        }}
+                        onFocus={() => setSearchFocused(true)}
+                        onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       />
                       
@@ -1013,123 +916,26 @@
                   )}
                 </div>
               </div>
-            ) : (
+            ) : activeTab === 'leaderboard' ? (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-bold text-gray-800">Ledertavle</h2>
-                  <button
-                    onClick={() => setShowLeagueManager(!showLeagueManager)}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm"
-                  >
-                    {showLeagueManager ? 'Lukk' : 'Administrer ligaer'}
-                  </button>
+                  {getUserLeagues().length > 0 && (
+                    <select
+                      value={currentLeagueId || ''}
+                      onChange={(e) => setCurrentLeagueId(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="" disabled>Velg liga</option>
+                      {getUserLeagues().map(league => (
+                        <option key={league.id} value={league.id}>{league.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
-
-                {showLeagueManager && (
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-bold text-gray-800 mb-3">Mine ligaer</h3>
-                    {getUserLeagues().length > 0 ? (
-                      <div className="space-y-2 mb-4">
-                        {getUserLeagues().map(league => (
-                          <div key={league.id} className="flex justify-between items-center p-3 bg-white rounded border">
-                            <div>
-                              <div className="font-semibold">{league.name}</div>
-                              <div className="text-sm text-gray-500">Kode: {league.code}</div>
-                            </div>
-                            <button
-                              onClick={() => setCurrentLeagueId(league.id)}
-                              className={`px-3 py-1 rounded text-sm ${
-                                currentLeagueId === league.id
-                                  ? 'bg-indigo-600 text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                            >
-                              {currentLeagueId === league.id ? 'Aktiv' : 'Velg'}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm mb-4">Du er ikke med i noen ligaer ennå</p>
-                    )}
-
-                    <div className="border-t pt-4">
-                      <div className="flex gap-2 mb-3">
-                        <button
-                          onClick={() => setLeagueAction('join')}
-                          className={`flex-1 py-2 rounded ${
-                            leagueAction === 'join'
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          Bli med i liga
-                        </button>
-                        <button
-                          onClick={() => setLeagueAction('create')}
-                          className={`flex-1 py-2 rounded ${
-                            leagueAction === 'create'
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-gray-200 text-gray-700'
-                          }`}
-                        >
-                          Opprett ny liga
-                        </button>
-                      </div>
-
-                      {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3 text-sm">
-                          {error}
-                        </div>
-                      )}
-
-                      {leagueAction === 'create' ? (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Liganavn (f.eks. Hansen Familie)"
-                            value={newLeagueName}
-                            onChange={(e) => setNewLeagueName(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
-                          />
-                          <button
-                            onClick={handleLeagueAction}
-                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                          >
-                            Opprett
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Ligakode"
-                            value={joinLeagueCode}
-                            onChange={(e) => setJoinLeagueCode(e.target.value.toUpperCase())}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm uppercase"
-                          />
-                          <button
-                            onClick={handleLeagueAction}
-                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                          >
-                            Bli med
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {currentLeagueId && leagues[currentLeagueId] ? (
                   <>
-                    <div className="mb-4 p-3 bg-indigo-50 rounded-lg">
-                      <div className="text-sm text-indigo-600 font-semibold">
-                        {leagues[currentLeagueId].name}
-                      </div>
-                      <div className="text-xs text-indigo-500">
-                        Kode: {leagues[currentLeagueId].code}
-                      </div>
-                    </div>
                     
                     <div className="space-y-3">
                       {getLeaderboard().map(user => (
@@ -1175,13 +981,101 @@
                   <div className="text-center py-8 text-gray-500">
                     <p className="mb-2">Du må være med i en liga for å se ledertavlen</p>
                     <button
-                      onClick={() => setShowLeagueManager(true)}
+                      onClick={() => setActiveTab('admin')}
                       className="text-indigo-600 hover:text-indigo-700 font-semibold"
                     >
                       Bli med i eller opprett en liga
                     </button>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-bold mb-4 text-gray-800">Administrer ligaer</h2>
+
+                <div className="mb-6">
+                  <h3 className="font-bold text-gray-800 mb-3">Mine ligaer</h3>
+                  {getUserLeagues().length > 0 ? (
+                    <div className="space-y-2 mb-4">
+                      {getUserLeagues().map(league => (
+                        <div key={league.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
+                          <div>
+                            <div className="font-semibold">{league.name}</div>
+                            <div className="text-sm text-gray-500">Kode: {league.code}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm mb-4">Du er ikke med i noen ligaer ennå</p>
+                  )}
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="font-bold text-gray-800 mb-3">Bli med i eller opprett liga</h3>
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      onClick={() => setLeagueAction('join')}
+                      className={`flex-1 py-2 rounded ${
+                        leagueAction === 'join'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      Bli med i liga
+                    </button>
+                    <button
+                      onClick={() => setLeagueAction('create')}
+                      className={`flex-1 py-2 rounded ${
+                        leagueAction === 'create'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      Opprett ny liga
+                    </button>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  {leagueAction === 'create' ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Liganavn (f.eks. Hansen Familie)"
+                        value={newLeagueName}
+                        onChange={(e) => setNewLeagueName(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                      />
+                      <button
+                        onClick={handleLeagueAction}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      >
+                        Opprett
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ligakode"
+                        value={joinLeagueCode}
+                        onChange={(e) => setJoinLeagueCode(e.target.value.toUpperCase())}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm uppercase"
+                      />
+                      <button
+                        onClick={handleLeagueAction}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                      >
+                        Bli med
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
