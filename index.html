@@ -319,9 +319,14 @@
           const historyArray = [];
           if (data) {
             Object.keys(data).forEach(bookId => {
-              Object.values(data[bookId]).forEach(entry => {
-                historyArray.push(entry);
-              });
+              const bookEntries = data[bookId];
+              if (bookEntries && typeof bookEntries === 'object') {
+                Object.values(bookEntries).forEach(entry => {
+                  if (entry && entry.timestamp) {
+                    historyArray.push(entry);
+                  }
+                });
+              }
             });
           }
           setReadingHistory(historyArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
@@ -365,12 +370,52 @@
           targetPages: pages,
           year: goalType === 'yearly' ? year : null,
           month: goalType === 'monthly' ? month : null,
+          yearMonth: goalType === 'monthly' ? `${year}-${month}` : null,
           createdAt: new Date().toISOString()
         });
         
         setShowGoalsModal(false);
         setGoalPages('');
         clearError();
+      };
+
+      const getPagesForGoalPeriod = () => {
+        if (!readingGoals) return 0;
+        
+        if (readingGoals.type === 'yearly') {
+          const currentYear = new Date().getFullYear();
+          const goalYear = readingGoals.year;
+          
+          // If it's a different year, start from 0
+          if (currentYear !== goalYear) return 0;
+          
+          // Sum pages from this year
+          return readingHistory
+            .filter(entry => {
+              const entryYear = new Date(entry.timestamp).getFullYear();
+              return entryYear === currentYear && entry.pagesAdded > 0;
+            })
+            .reduce((sum, entry) => sum + entry.pagesAdded, 0);
+        } else if (readingGoals.type === 'monthly') {
+          const currentYear = new Date().getFullYear();
+          const currentMonth = new Date().getMonth();
+          const goalYearMonth = `${currentYear}-${currentMonth}`;
+          
+          // If it's a different month, start from 0
+          if (goalYearMonth !== readingGoals.yearMonth) return 0;
+          
+          // Sum pages from this month
+          return readingHistory
+            .filter(entry => {
+              const entryDate = new Date(entry.timestamp);
+              return entryDate.getFullYear() === currentYear && 
+                     entryDate.getMonth() === currentMonth && 
+                     entry.pagesAdded > 0;
+            })
+            .reduce((sum, entry) => sum + entry.pagesAdded, 0);
+        }
+        
+        return 0;
       };
 
       const checkAchievements = (profile) => {
@@ -1033,17 +1078,17 @@
                             {readingGoals.type === 'yearly' ? 'Årlig mål' : 'Månedlig mål'}
                           </div>
                           <div className="text-2xl font-bold text-green-700">
-                            {currentProfile.totalPages} / {readingGoals.targetPages} sider
+                            {getPagesForGoalPeriod()} / {readingGoals.targetPages} sider
                           </div>
                           <div className="w-64 bg-green-200 rounded-full h-2 mt-2">
                             <div
                               className="bg-green-600 h-2 rounded-full transition-all"
-                              style={{ width: `${Math.min((currentProfile.totalPages / readingGoals.targetPages) * 100, 100)}%` }}
+                              style={{ width: `${Math.min((getPagesForGoalPeriod() / readingGoals.targetPages) * 100, 100)}%` }}
                             />
                           </div>
                         </div>
                         <div className="text-3xl">
-                          {currentProfile.totalPages >= readingGoals.targetPages ? '🎉' : '📚'}
+                          {getPagesForGoalPeriod() >= readingGoals.targetPages ? '🎉' : '📚'}
                         </div>
                       </div>
                     </div>
