@@ -15,27 +15,27 @@ window.ProfileHeader = ({
   const { BookOpen, LogOut, Flame } = window.Icons;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <BookOpen className="w-8 h-8 text-indigo-600" />
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">{currentProfile.name}</h1>
-            <p className="text-sm text-gray-500">FamiLes 2026</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-800">{currentProfile.name}</h1>
+            <p className="text-xs sm:text-sm text-gray-500">FamiLes 2026</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <button
             onClick={() => setCurrentProfile(null)}
-            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
           >
             Bytt profil
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition"
+            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 transition"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
             Logg ut
           </button>
         </div>
