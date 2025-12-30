@@ -298,7 +298,7 @@ const BookContestApp = () => {
     // totalXP tracks all XP (from pages + future sources)
     // For pages: XP added = pages added (1 page = 1 XP)
     const xpFromPages = difference > 0 ? difference : 0;
-    const currentTotalXP = currentProfile.totalXP || currentProfile.totalPages || 0; // Fallback for existing profiles
+    const currentTotalXP = currentProfile.totalXP ?? currentProfile.totalPages ?? 0; // Fallback for existing profiles
     const newTotalXP = currentTotalXP + xpFromPages;
     
     const newLevel = getLevelFromXP(newTotalXP);
