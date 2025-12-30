@@ -78,6 +78,7 @@ const BookContestApp = () => {
   // Level-up state
   const [levelUpQueue, setLevelUpQueue] = useState([]);
   const [currentLevelUp, setCurrentLevelUp] = useState(null);
+  const [isMultipleLevelUp, setIsMultipleLevelUp] = useState(false);
   
   // Leaderboard state
   const [users, setUsers] = useState({});
@@ -126,13 +127,17 @@ const BookContestApp = () => {
       setLevelUpQueue(prev => prev.slice(1));
       
       // Display duration: 4s for single level, 2s per level for multiple
-      const displayDuration = levelUpQueue.length > 0 ? 2000 : 4000;
+      const displayDuration = isMultipleLevelUp ? 2000 : 4000;
       
       setTimeout(() => {
         setCurrentLevelUp(null);
+        // Reset flag when queue is empty
+        if (levelUpQueue.length === 1) { // Will be empty after this one
+          setIsMultipleLevelUp(false);
+        }
       }, displayDuration);
     }
-  }, [levelUpQueue, currentLevelUp]);
+  }, [levelUpQueue, currentLevelUp, isMultipleLevelUp]);
 
   // Authentication handlers
   const handleAuth = async () => {
@@ -321,6 +326,7 @@ const BookContestApp = () => {
       for (let level = oldLevel + 1; level <= newLevel; level++) {
         levelsGained.push(level);
       }
+      setIsMultipleLevelUp(levelsGained.length > 1);
       setLevelUpQueue(prev => [...prev, ...levelsGained]);
     }
     
