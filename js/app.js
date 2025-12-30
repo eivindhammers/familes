@@ -423,6 +423,11 @@ const BookContestApp = () => {
     }
   }, [currentProfile]);
 
+  // Reset league selection when profile changes
+  useEffect(() => {
+    setCurrentLeagueId(null);
+  }, [currentProfile?.id]);
+
   // Load league leaderboard when league is selected
   useEffect(() => {
     if (currentLeagueId) {
