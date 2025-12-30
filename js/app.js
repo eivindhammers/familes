@@ -590,7 +590,8 @@ const BookContestApp = () => {
             }`}
           >
             <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden xs:inline">Mine </span>bøker
+            <span className="sm:hidden">Bøker</span>
+            <span className="hidden sm:inline">Mine bøker</span>
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
