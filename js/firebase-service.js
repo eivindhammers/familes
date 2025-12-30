@@ -217,6 +217,7 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
     id: profileId,
     name: profile.name,
     totalPages: profile.totalPages,
+    totalXP: profile.totalXP ?? profile.totalPages ?? 0,
     level: profile.level,
     currentStreak: profile.currentStreak,
     longestStreak: profile.longestStreak

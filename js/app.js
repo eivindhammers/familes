@@ -43,7 +43,7 @@ const {
   LevelUpOverlay
 } = window;
 
-const { DAILY_XP_GOAL } = APP_CONSTANTS;
+const { DAILY_PAGES_GOAL } = APP_CONSTANTS;
 const { BookOpen, Users, Settings } = Icons;
 
 // Level-up display durations (in milliseconds)
@@ -169,11 +169,13 @@ const BookContestApp = () => {
           name: registerName.trim(),
           isMainAccount: true,
           totalPages: 0,
+          totalXP: 0,
           level: 1,
           currentStreak: 0,
           longestStreak: 0,
           lastReadDate: null,
           pagesReadToday: 0,
+          xpEarnedToday: 0,
           createdAt: new Date().toISOString()
         };
         await saveProfile(userCredential.user.uid, profileId, defaultProfile);
@@ -210,11 +212,13 @@ const BookContestApp = () => {
       name: newProfileName.trim(),
       isMainAccount: false,
       totalPages: 0,
+      totalXP: 0,
       level: 1,
       currentStreak: 0,
       longestStreak: 0,
       lastReadDate: null,
       pagesReadToday: 0,
+      xpEarnedToday: 0,
       createdAt: new Date().toISOString()
     };
 
@@ -289,15 +293,36 @@ const BookContestApp = () => {
     });
   
     const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
-    const newLevel = getLevelFromXP(totalPagesAcrossAllBooks);
+    
+    // Calculate XP: pages read give 1 XP each
+    // totalXP tracks all XP (from pages + future sources)
+    // For pages: XP added = pages added (1 page = 1 XP)
+    const xpFromPages = difference > 0 ? difference : 0;
+    const currentTotalXP = currentProfile.totalXP || currentProfile.totalPages || 0; // Fallback for existing profiles
+    const newTotalXP = currentTotalXP + xpFromPages;
+    
+    const newLevel = getLevelFromXP(newTotalXP);
     const oldLevel = currentProfile.level;
   
+    // Streaks are based on pages read (not XP)
     const streakData = useStreakCalculation(currentProfile, difference > 0 ? difference : 0);
     const wasStreakActive = currentProfile.currentStreak > 0;
+    
+    // Calculate xpEarnedToday
+    const { getTodayString } = window;
+    const today = getTodayString();
+    let xpEarnedToday = currentProfile.xpEarnedToday || 0;
+    if (currentProfile.lastReadDate === today) {
+      xpEarnedToday += xpFromPages;
+    } else {
+      xpEarnedToday = xpFromPages;
+    }
     
     const updatedProfile = {
       ...currentProfile,
       totalPages: totalPagesAcrossAllBooks,
+      totalXP: newTotalXP,
+      xpEarnedToday: xpEarnedToday,
       level: newLevel,
       ...streakData
     };
@@ -309,6 +334,7 @@ const BookContestApp = () => {
       previousTotal: targetBook.pagesRead,
       newTotal: newTotalRead,
       pagesAdded: difference,
+      xpEarned: xpFromPages,
       profileName: currentProfile.name,
       levelAtTime: newLevel
     };
@@ -528,8 +554,10 @@ const BookContestApp = () => {
     );
   }
 
-  const progress = calculateProgress(currentProfile.totalPages);
-  const xpProgress = getXPProgress(currentProfile.totalPages);
+  // Use totalXP for leveling calculations (fallback to totalPages for existing profiles)
+  const totalXP = currentProfile.totalXP ?? currentProfile.totalPages ?? 0;
+  const progress = calculateProgress(totalXP);
+  const xpProgress = getXPProgress(totalXP);
 
   // Render main app
   return (
@@ -548,7 +576,7 @@ const BookContestApp = () => {
           showStreakMessage={showStreakMessage}
           progress={progress}
           xpProgress={xpProgress}
-          DAILY_XP_GOAL={DAILY_XP_GOAL}
+          DAILY_PAGES_GOAL={DAILY_PAGES_GOAL}
         />
 
         <div className="flex gap-2 mb-6">

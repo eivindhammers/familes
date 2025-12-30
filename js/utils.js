@@ -102,22 +102,26 @@ window.getXPProgress = (totalXP) => {
 
 /**
  * Generate leaderboard with rankings from users object
+ * Rankings are based on totalXP (for leveling) with fallback to totalPages
  * @param {Object} users - Object of user data keyed by profile ID
  * @param {string|null} leagueId - Optional league ID to filter by
  * @param {Object} leagueLeaderboard - Optional league leaderboard data
  * @returns {Array} Sorted array of users with rank property
  */
 window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
+  // Helper to get XP with fallback
+  const getXP = (user) => user.totalXP ?? user.totalPages ?? 0;
+  
   // If league filtering is requested, use league leaderboard data
   if (leagueId && leagueLeaderboard) {
     return Object.values(leagueLeaderboard)
-      .sort((a, b) => b.totalPages - a.totalPages)
+      .sort((a, b) => getXP(b) - getXP(a))
       .map((user, index) => ({ ...user, rank: index + 1 }));
   }
   
   // Otherwise return global leaderboard
   return Object.values(users)
-    .sort((a, b) => b.totalPages - a.totalPages)
+    .sort((a, b) => getXP(b) - getXP(a))
     .map((user, index) => ({ ...user, rank: index + 1 }));
 };
 

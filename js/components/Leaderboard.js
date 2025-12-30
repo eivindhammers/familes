@@ -107,7 +107,7 @@ window.Leaderboard = ({
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
+                <div className="text-2xl font-bold text-indigo-600">{user.totalXP ?? user.totalPages ?? 0}</div>
                 <div className="text-sm text-gray-500">XP</div>
               </div>
             </div>
