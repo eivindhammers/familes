@@ -58,10 +58,11 @@ window.getLevelFromXP = (totalXP) => {
   let level = 1;
   let cumulativeXP = 0;
   const { XP_BASE, XP_MULTIPLIER } = window.APP_CONSTANTS;
+  const MAX_LEVEL = 1000; // Safety limit to prevent infinite loops
   
-  while (true) {
+  while (level < MAX_LEVEL) {
     const xpForNextLevel = Math.floor(XP_BASE * Math.pow(XP_MULTIPLIER, level - 1));
-    if (cumulativeXP + xpForNextLevel > totalXP) {
+    if (xpForNextLevel <= 0 || cumulativeXP + xpForNextLevel > totalXP) {
       break;
     }
     cumulativeXP += xpForNextLevel;
