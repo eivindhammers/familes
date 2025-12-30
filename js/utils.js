@@ -36,10 +36,35 @@ window.calculateProgress = (totalPages) => {
 /**
  * Generate leaderboard with rankings from users object
  * @param {Object} users - Object of user data keyed by profile ID
+ * @param {string|null} leagueId - Optional league ID to filter by
+ * @param {Object} leagueLeaderboard - Optional league leaderboard data
  * @returns {Array} Sorted array of users with rank property
  */
-window.getLeaderboard = (users) => {
+window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
+  // If league filtering is requested, use league leaderboard data
+  if (leagueId && leagueLeaderboard) {
+    return Object.values(leagueLeaderboard)
+      .sort((a, b) => b.totalPages - a.totalPages)
+      .map((user, index) => ({ ...user, rank: index + 1 }));
+  }
+  
+  // Otherwise return global leaderboard
   return Object.values(users)
     .sort((a, b) => b.totalPages - a.totalPages)
     .map((user, index) => ({ ...user, rank: index + 1 }));
+};
+
+/**
+ * Generate a random 6-character league code
+ * Uses alphanumeric characters excluding confusable ones (I, O, 0, 1)
+ * to reduce user errors when entering codes
+ * @returns {string} Random league code
+ */
+window.generateLeagueCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 };
