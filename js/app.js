@@ -44,6 +44,10 @@ const {
 const { PAGES_PER_LEVEL, DAILY_PAGES_GOAL } = APP_CONSTANTS;
 const { BookOpen, Users, Settings } = Icons;
 
+// Level-up display durations (in milliseconds)
+const SINGLE_LEVELUP_DURATION = 4000; // 4 seconds for single level-up
+const MULTIPLE_LEVELUP_DURATION = 2000; // 2 seconds per level for multiple level-ups
+
 const BookContestApp = () => {
   // Authentication state
   const [authUser, setAuthUser] = useState(null);
@@ -128,7 +132,7 @@ const BookContestApp = () => {
       setLevelUpQueue(prev => prev.slice(1));
       
       // Display duration: 4s for single level, 2s per level for multiple
-      const displayDuration = isMultipleLevelUp ? 2000 : 4000;
+      const displayDuration = isMultipleLevelUp ? MULTIPLE_LEVELUP_DURATION : SINGLE_LEVELUP_DURATION;
       
       setTimeout(() => {
         setCurrentLevelUp(null);
@@ -530,7 +534,6 @@ const BookContestApp = () => {
       {currentLevelUp && (
         <LevelUpOverlay 
           level={currentLevelUp}
-          onClose={() => setCurrentLevelUp(null)}
         />
       )}
       

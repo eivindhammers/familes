@@ -3,7 +3,7 @@
  * Displays animated level-up notifications with confetti
  */
 
-window.LevelUpOverlay = ({ level, onClose }) => {
+window.LevelUpOverlay = ({ level }) => {
   const { useEffect } = React;
 
   useEffect(() => {
