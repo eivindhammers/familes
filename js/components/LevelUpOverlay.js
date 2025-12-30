@@ -7,7 +7,7 @@ window.LevelUpOverlay = ({ level }) => {
   const { useEffect } = React;
 
   useEffect(() => {
-    // Fire confetti when component mounts
+    // Fire confetti when component mounts (once per level shown)
     if (window.confetti) {
       window.confetti({
         particleCount: 100,
@@ -15,7 +15,7 @@ window.LevelUpOverlay = ({ level }) => {
         origin: { y: 0.6 }
       });
     }
-  }, []);
+  }, []); // Empty array ensures confetti fires only on mount
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

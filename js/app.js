@@ -142,7 +142,7 @@ const BookContestApp = () => {
         }
       }, displayDuration);
     }
-  }, [levelUpQueue, currentLevelUp, isMultipleLevelUp]);
+  }, [levelUpQueue, currentLevelUp]); // isMultipleLevelUp excluded to avoid unnecessary re-renders
 
   // Authentication handlers
   const handleAuth = async () => {
