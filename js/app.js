@@ -9,6 +9,7 @@ const {
   Icons,
   // Utils
   calculateProgress,
+  generateLeagueCode,
   // Firebase services
   saveProfile,
   saveUserToGlobalList,
@@ -17,6 +18,13 @@ const {
   loadUserProfiles,
   loadProfileBooks,
   loadAllUsers,
+  loadLeagues,
+  createLeague,
+  findLeagueByCode,
+  addMemberToLeague,
+  addLeagueToProfile,
+  updateLeagueLeaderboard,
+  loadLeagueLeaderboard,
   // Google Books API
   searchGoogleBooks,
   // Hooks
@@ -27,11 +35,12 @@ const {
   ProfileHeader,
   BookForm,
   BookList,
-  Leaderboard
+  Leaderboard,
+  LeagueManager
 } = window;
 
 const { PAGES_PER_LEVEL, DAILY_PAGES_GOAL } = APP_CONSTANTS;
-const { BookOpen, Users } = Icons;
+const { BookOpen, Users, Settings } = Icons;
 
 const BookContestApp = () => {
   // Authentication state
@@ -66,6 +75,14 @@ const BookContestApp = () => {
   
   // Leaderboard state
   const [users, setUsers] = useState({});
+  
+  // League state
+  const [leagues, setLeagues] = useState({});
+  const [currentLeagueId, setCurrentLeagueId] = useState(null);
+  const [newLeagueName, setNewLeagueName] = useState('');
+  const [joinLeagueCode, setJoinLeagueCode] = useState('');
+  const [leagueAction, setLeagueAction] = useState('join');
+  const [leagueLeaderboard, setLeagueLeaderboard] = useState({});
 
   // Google Books search with debounce
   useEffect(() => {
@@ -266,6 +283,13 @@ const BookContestApp = () => {
     await saveUserToGlobalList(currentProfile.id, updatedProfile);
     await saveReadingEntry(currentProfile.id, bookId, readingEntry);
     
+    // Update league leaderboards for all leagues the profile is in
+    if (currentProfile.leagues && currentProfile.leagues.length > 0) {
+      for (const leagueId of currentProfile.leagues) {
+        await updateLeagueLeaderboard(leagueId, currentProfile.id, updatedProfile);
+      }
+    }
+    
     setCurrentProfile(updatedProfile);
     
     if (!wasStreakActive && streakData.currentStreak > 0) {
@@ -276,6 +300,71 @@ const BookContestApp = () => {
     setPageUpdate('');
     setSelectedBook(null);
     setError('');
+  };
+
+  // League handlers
+  const handleLeagueAction = async (action) => {
+    setError('');
+    
+    if (action === 'create') {
+      if (!newLeagueName.trim()) {
+        setError('Vennligst skriv inn et liganavn');
+        return;
+      }
+      
+      try {
+        const code = generateLeagueCode();
+        const leagueId = await createLeague(newLeagueName.trim(), code, currentProfile.id);
+        await addLeagueToProfile(authUser.uid, currentProfile.id, leagueId);
+        await updateLeagueLeaderboard(leagueId, currentProfile.id, currentProfile);
+        
+        // Update local state
+        const updatedProfile = {
+          ...currentProfile,
+          leagues: [...(currentProfile.leagues || []), leagueId]
+        };
+        setCurrentProfile(updatedProfile);
+        setNewLeagueName('');
+        setError('');
+      } catch (err) {
+        setError('Kunne ikke opprette liga: ' + err.message);
+      }
+    } else if (action === 'join') {
+      if (!joinLeagueCode.trim() || joinLeagueCode.length !== 6) {
+        setError('Vennligst skriv inn en gyldig 6-tegns ligakode');
+        return;
+      }
+      
+      try {
+        const league = await findLeagueByCode(joinLeagueCode.trim());
+        
+        if (!league) {
+          setError('Fant ingen liga med denne koden');
+          return;
+        }
+        
+        // Check if already a member
+        if (currentProfile.leagues && currentProfile.leagues.includes(league.id)) {
+          setError('Du er allerede medlem av denne ligaen');
+          return;
+        }
+        
+        await addMemberToLeague(league.id, currentProfile.id);
+        await addLeagueToProfile(authUser.uid, currentProfile.id, league.id);
+        await updateLeagueLeaderboard(league.id, currentProfile.id, currentProfile);
+        
+        // Update local state
+        const updatedProfile = {
+          ...currentProfile,
+          leagues: [...(currentProfile.leagues || []), league.id]
+        };
+        setCurrentProfile(updatedProfile);
+        setJoinLeagueCode('');
+        setError('');
+      } catch (err) {
+        setError('Kunne ikke bli med i liga: ' + err.message);
+      }
+    }
   };
 
   // Authentication listener
@@ -315,8 +404,22 @@ const BookContestApp = () => {
       loadAllUsers((data) => {
         setUsers(data || {});
       });
+      loadLeagues((data) => {
+        setLeagues(data || {});
+      });
     }
   }, [currentProfile]);
+
+  // Load league leaderboard when league is selected
+  useEffect(() => {
+    if (currentLeagueId) {
+      loadLeagueLeaderboard(currentLeagueId, (data) => {
+        setLeagueLeaderboard(data || {});
+      });
+    } else {
+      setLeagueLeaderboard({});
+    }
+  }, [currentLeagueId]);
 
   // Render loading state
   if (loading) {
@@ -402,6 +505,17 @@ const BookContestApp = () => {
             <Users className="w-5 h-5" />
             Ledertavle
           </button>
+          <button
+            onClick={() => setActiveTab('admin')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+              activeTab === 'admin'
+                ? 'bg-white shadow-md text-indigo-600'
+                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+            }`}
+          >
+            <Settings className="w-5 h-5" />
+            Ligaer
+          </button>
         </div>
 
         {activeTab === 'myBooks' ? (
@@ -430,10 +544,27 @@ const BookContestApp = () => {
               deleteBook={deleteBook}
             />
           </div>
-        ) : (
+        ) : activeTab === 'leaderboard' ? (
           <Leaderboard 
             users={users} 
-            currentProfile={currentProfile} 
+            currentProfile={currentProfile}
+            leagues={leagues}
+            currentLeagueId={currentLeagueId}
+            setCurrentLeagueId={setCurrentLeagueId}
+            leagueLeaderboard={leagueLeaderboard}
+          />
+        ) : (
+          <LeagueManager
+            leagues={leagues}
+            currentProfile={currentProfile}
+            newLeagueName={newLeagueName}
+            setNewLeagueName={setNewLeagueName}
+            joinLeagueCode={joinLeagueCode}
+            setJoinLeagueCode={setJoinLeagueCode}
+            leagueAction={leagueAction}
+            setLeagueAction={setLeagueAction}
+            handleLeagueAction={handleLeagueAction}
+            error={error}
           />
         )}
       </div>

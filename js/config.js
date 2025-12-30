@@ -159,5 +159,21 @@ window.Icons = {
     React.createElement("path", { key: "3", d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" }),
     React.createElement("line", { key: "4", x1: "10", y1: "11", x2: "10", y2: "17" }),
     React.createElement("line", { key: "5", x1: "14", y1: "11", x2: "14", y2: "17" })
+  ]),
+
+  Settings: (props) => React.createElement("svg", {
+    ...props,
+    xmlns: "http://www.w3.org/2000/svg",
+    width: "24",
+    height: "24",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, [
+    React.createElement("circle", { key: "1", cx: "12", cy: "12", r: "3" }),
+    React.createElement("path", { key: "2", d: "M12 1v6m0 6v6m0-18l-2.5 4.33M12 1l2.5 4.33M1 12h6m6 0h6m-18 0l4.33-2.5M1 12l4.33 2.5m17.67-2.5l-4.33-2.5M23 12l-4.33 2.5m-6.67 8.5l-2.5-4.33M12 23l2.5-4.33" })
   ])
 };
