@@ -14,20 +14,24 @@ window.Leaderboard = ({
 }) => {
   const { Flame } = window.Icons;
   const { getLeaderboard } = window;
+  const { useEffect } = React;
   
   // Get leagues that current profile is a member of
   const userLeagues = leagues && currentProfile.leagues 
     ? Object.values(leagues).filter(league => currentProfile.leagues.includes(league.id))
     : [];
   
+  // Auto-select first league if user has leagues but none selected
+  useEffect(() => {
+    if (userLeagues.length > 0 && !currentLeagueId) {
+      setCurrentLeagueId(userLeagues[0].id);
+    }
+  }, [userLeagues.length, currentLeagueId, setCurrentLeagueId]);
+  
   // Determine which leaderboard to show
-  // If user has no leagues, show empty array
-  // If user has leagues but none selected, select the first one
-  const leaderboardData = userLeagues.length === 0
-    ? []
-    : currentLeagueId && leagueLeaderboard
-      ? getLeaderboard(null, currentLeagueId, leagueLeaderboard)
-      : [];
+  const leaderboardData = currentLeagueId && leagueLeaderboard
+    ? getLeaderboard(null, currentLeagueId, leagueLeaderboard)
+    : [];
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -37,25 +41,29 @@ window.Leaderboard = ({
         </h2>
         
         {/* League Selector */}
-        {userLeagues.length > 0 && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Velg liga
-            </label>
-            <select
-              value={currentLeagueId || ''}
-              onChange={(e) => setCurrentLeagueId(e.target.value || null)}
-              className="max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Velg en liga...</option>
-              {userLeagues.map(league => (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Velg liga
+          </label>
+          <select
+            value={currentLeagueId || ''}
+            onChange={(e) => setCurrentLeagueId(e.target.value || null)}
+            disabled={userLeagues.length === 0}
+            className={`max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              userLeagues.length === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
+            }`}
+          >
+            {userLeagues.length === 0 ? (
+              <option value="">Ingen ligaer</option>
+            ) : (
+              userLeagues.map(league => (
                 <option key={league.id} value={league.id}>
                   {league.name}
                 </option>
-              ))}
-            </select>
-          </div>
-        )}
+              ))
+            )}
+          </select>
+        </div>
         
         {/* Message if not in any leagues */}
         {userLeagues.length === 0 && (
@@ -104,13 +112,7 @@ window.Leaderboard = ({
               </div>
             </div>
           ))
-        ) : (
-          userLeagues.length > 0 && !currentLeagueId && (
-            <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
-              Velg en liga fra nedtrekksmenyen over for å se ledertavlen.
-            </div>
-          )
-        )}
+        ) : null}
       </div>
     </div>
   );
