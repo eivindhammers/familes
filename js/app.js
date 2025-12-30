@@ -21,6 +21,7 @@ const {
   loadLeagues,
   createLeague,
   findLeagueByCode,
+  leagueCodeExists,
   addMemberToLeague,
   addLeagueToProfile,
   updateLeagueLeaderboard,
@@ -313,7 +314,19 @@ const BookContestApp = () => {
       }
       
       try {
-        const code = generateLeagueCode();
+        // Generate unique league code with retry logic
+        let code;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        do {
+          code = generateLeagueCode();
+          attempts++;
+          if (attempts > maxAttempts) {
+            throw new Error('Kunne ikke generere unik ligakode');
+          }
+        } while (await leagueCodeExists(code));
+        
         const leagueId = await createLeague(newLeagueName.trim(), code, currentProfile.id);
         await addLeagueToProfile(authUser.uid, currentProfile.id, leagueId);
         await updateLeagueLeaderboard(leagueId, currentProfile.id, currentProfile);

@@ -148,6 +148,16 @@ window.findLeagueByCode = async (code) => {
 };
 
 /**
+ * Check if a league code already exists
+ * @param {string} code - League code to check
+ * @returns {Promise<boolean>} True if code exists, false otherwise
+ */
+window.leagueCodeExists = async (code) => {
+  const league = await window.findLeagueByCode(code);
+  return league !== null;
+};
+
+/**
  * Add profile to league members
  * @param {string} leagueId - League ID
  * @param {string} profileId - Profile ID to add
@@ -168,6 +178,10 @@ window.addLeagueToProfile = async (uid, profileId, leagueId) => {
   const profileRef = database.ref(`userProfiles/${uid}/${profileId}`);
   const snapshot = await profileRef.once('value');
   const profile = snapshot.val();
+  
+  if (!profile) {
+    throw new Error('Profile not found');
+  }
   
   const leagues = profile.leagues || [];
   if (!leagues.includes(leagueId)) {
