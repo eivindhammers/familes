@@ -1,6 +1,6 @@
 /**
  * Leaderboard Component
- * Displays ranked list of all users by total pages read
+ * Displays ranked list of all users by total XP
  * Supports filtering by league
  */
 
@@ -108,7 +108,7 @@ window.Leaderboard = ({
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
-                <div className="text-sm text-gray-500">sider lest</div>
+                <div className="text-sm text-gray-500">XP</div>
               </div>
             </div>
           ))

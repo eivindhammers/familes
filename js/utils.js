@@ -23,14 +23,80 @@ window.getTodayString = () => {
 };
 
 /**
- * Calculate progress percentage for current level
- * @param {number} totalPages - Total pages read
+ * Calculate cumulative XP needed to reach a specific level
+ * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
+ * @param {number} level - Target level (minimum 1)
+ * @returns {number} Total XP needed to reach that level
+ */
+window.getCumulativeXPForLevel = (level) => {
+  if (level <= 1) return 0;
+  const { XP_BASE, XP_MULTIPLIER } = window.APP_CONSTANTS;
+  let totalXP = 0;
+  for (let i = 2; i <= level; i++) {
+    totalXP += Math.floor(XP_BASE * Math.pow(XP_MULTIPLIER, i - 2));
+  }
+  return totalXP;
+};
+
+/**
+ * Calculate XP needed just for the next level (not cumulative)
+ * @param {number} currentLevel - Current level
+ * @returns {number} XP needed to reach next level from current level
+ */
+window.getXPForNextLevel = (currentLevel) => {
+  const { XP_BASE, XP_MULTIPLIER } = window.APP_CONSTANTS;
+  return Math.floor(XP_BASE * Math.pow(XP_MULTIPLIER, currentLevel - 1));
+};
+
+/**
+ * Calculate level from total XP
+ * @param {number} totalXP - Total XP accumulated
+ * @returns {number} Current level (minimum 1)
+ */
+window.getLevelFromXP = (totalXP) => {
+  if (totalXP <= 0) return 1;
+  let level = 1;
+  let cumulativeXP = 0;
+  const { XP_BASE, XP_MULTIPLIER } = window.APP_CONSTANTS;
+  
+  while (true) {
+    const xpForNextLevel = Math.floor(XP_BASE * Math.pow(XP_MULTIPLIER, level - 1));
+    if (cumulativeXP + xpForNextLevel > totalXP) {
+      break;
+    }
+    cumulativeXP += xpForNextLevel;
+    level++;
+  }
+  return level;
+};
+
+/**
+ * Calculate progress percentage towards next level
+ * @param {number} totalXP - Total XP accumulated
  * @returns {number} Progress percentage (0-100)
  */
-window.calculateProgress = (totalPages) => {
-  const { PAGES_PER_LEVEL } = window.APP_CONSTANTS;
-  const currentLevelPages = totalPages % PAGES_PER_LEVEL;
-  return (currentLevelPages / PAGES_PER_LEVEL) * 100;
+window.calculateProgress = (totalXP) => {
+  const currentLevel = window.getLevelFromXP(totalXP);
+  const xpAtCurrentLevel = window.getCumulativeXPForLevel(currentLevel);
+  const xpForNextLevel = window.getXPForNextLevel(currentLevel);
+  const xpInCurrentLevel = totalXP - xpAtCurrentLevel;
+  return (xpInCurrentLevel / xpForNextLevel) * 100;
+};
+
+/**
+ * Get XP progress within current level (current/needed)
+ * @param {number} totalXP - Total XP accumulated
+ * @returns {Object} Object with currentXP (XP in current level) and neededXP (XP for next level)
+ */
+window.getXPProgress = (totalXP) => {
+  const currentLevel = window.getLevelFromXP(totalXP);
+  const xpAtCurrentLevel = window.getCumulativeXPForLevel(currentLevel);
+  const xpForNextLevel = window.getXPForNextLevel(currentLevel);
+  const xpInCurrentLevel = totalXP - xpAtCurrentLevel;
+  return {
+    currentXP: xpInCurrentLevel,
+    neededXP: xpForNextLevel
+  };
 };
 
 /**

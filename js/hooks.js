@@ -6,12 +6,12 @@
 /**
  * Hook for streak calculation and update logic
  * @param {Object} profile - Current profile object
- * @param {number} pagesToday - Number of pages read today
+ * @param {number} xpToday - Amount of XP earned today
  * @returns {Object} Updated streak data
  */
-window.useStreakCalculation = (profile, pagesToday) => {
+window.useStreakCalculation = (profile, xpToday) => {
   const { getTodayString } = window;
-  const { DAILY_PAGES_GOAL } = window.APP_CONSTANTS;
+  const { DAILY_XP_GOAL } = window.APP_CONSTANTS;
   
   const today = getTodayString();
   const yesterday = new Date();
@@ -24,12 +24,12 @@ window.useStreakCalculation = (profile, pagesToday) => {
   let pagesReadToday = profile.pagesReadToday || 0;
 
   if (lastReadDate === today) {
-    pagesReadToday += pagesToday;
+    pagesReadToday += xpToday;
   } else {
-    pagesReadToday = pagesToday;
+    pagesReadToday = xpToday;
   }
 
-  if (pagesReadToday >= DAILY_PAGES_GOAL) {
+  if (pagesReadToday >= DAILY_XP_GOAL) {
     if (lastReadDate === yesterdayString || lastReadDate === today) {
       if (lastReadDate === yesterdayString) {
         currentStreak += 1;

@@ -21,8 +21,10 @@ window.auth = firebase.auth();
 
 // Constants
 window.APP_CONSTANTS = {
-  PAGES_PER_LEVEL: 20,
-  DAILY_PAGES_GOAL: 5
+  // XP system: 1 page = 1 XP
+  XP_BASE: 10,         // XP needed for first level
+  XP_MULTIPLIER: 1.5,  // Each level requires 50% more XP than the previous
+  DAILY_XP_GOAL: 5     // XP needed per day to maintain streak
 };
 
 // Icon components (available globally)

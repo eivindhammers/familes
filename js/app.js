@@ -10,6 +10,8 @@ const {
   // Utils
   calculateProgress,
   generateLeagueCode,
+  getLevelFromXP,
+  getXPProgress,
   // Firebase services
   saveProfile,
   saveUserToGlobalList,
@@ -41,7 +43,7 @@ const {
   LevelUpOverlay
 } = window;
 
-const { PAGES_PER_LEVEL, DAILY_PAGES_GOAL } = APP_CONSTANTS;
+const { DAILY_XP_GOAL } = APP_CONSTANTS;
 const { BookOpen, Users, Settings } = Icons;
 
 // Level-up display durations (in milliseconds)
@@ -287,7 +289,7 @@ const BookContestApp = () => {
     });
   
     const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
-    const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
+    const newLevel = getLevelFromXP(totalPagesAcrossAllBooks);
     const oldLevel = currentProfile.level;
   
     const streakData = useStreakCalculation(currentProfile, difference > 0 ? difference : 0);
@@ -527,6 +529,7 @@ const BookContestApp = () => {
   }
 
   const progress = calculateProgress(currentProfile.totalPages);
+  const xpProgress = getXPProgress(currentProfile.totalPages);
 
   // Render main app
   return (
@@ -544,8 +547,8 @@ const BookContestApp = () => {
           handleLogout={handleLogout}
           showStreakMessage={showStreakMessage}
           progress={progress}
-          PAGES_PER_LEVEL={PAGES_PER_LEVEL}
-          DAILY_PAGES_GOAL={DAILY_PAGES_GOAL}
+          xpProgress={xpProgress}
+          DAILY_XP_GOAL={DAILY_XP_GOAL}
         />
 
         <div className="flex gap-2 mb-6">
