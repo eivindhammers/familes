@@ -15,7 +15,7 @@ window.LevelUpOverlay = ({ level, onClose }) => {
         origin: { y: 0.6 }
       });
     }
-  }, [level]);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

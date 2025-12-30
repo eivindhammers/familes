@@ -123,6 +123,7 @@ const BookContestApp = () => {
   useEffect(() => {
     if (levelUpQueue.length > 0 && !currentLevelUp) {
       const nextLevel = levelUpQueue[0];
+      const isLastLevel = levelUpQueue.length === 1;
       setCurrentLevelUp(nextLevel);
       setLevelUpQueue(prev => prev.slice(1));
       
@@ -132,7 +133,7 @@ const BookContestApp = () => {
       setTimeout(() => {
         setCurrentLevelUp(null);
         // Reset flag when queue is empty
-        if (levelUpQueue.length === 1) { // Will be empty after this one
+        if (isLastLevel) {
           setIsMultipleLevelUp(false);
         }
       }, displayDuration);
