@@ -42,8 +42,67 @@
     const database = firebase.database();
     const auth = firebase.auth();
 
-    const PAGES_PER_LEVEL = 20;
     const DAILY_PAGES_GOAL = 5;
+    const LEVEL_FORMULA_VERSION = 1; // Increment this when changing the level formula
+
+    // Pre-computed XP thresholds for levels 1-20 using formula: 10 * N^1.5
+    // XP_LEVEL_THRESHOLDS[n] = cumulative XP needed to reach level n+1
+    // Example: XP_LEVEL_THRESHOLDS[0] = 10 means you need 10 XP to reach level 2
+    const XP_LEVEL_THRESHOLDS = (() => {
+      const thresholds = [];
+      let cumulative = 0;
+      for (let level = 1; level <= 20; level++) {
+        cumulative += Math.round(10 * Math.pow(level, 1.5));
+        thresholds.push(cumulative);
+      }
+      return thresholds;
+    })();
+
+    // Calculate level from total XP using the lookup table
+    const calculateLevelFromXP = (totalXP) => {
+      for (let i = 0; i < XP_LEVEL_THRESHOLDS.length; i++) {
+        if (totalXP < XP_LEVEL_THRESHOLDS[i]) {
+          return i + 1; // Level is 1-indexed
+        }
+      }
+      // Beyond pre-computed levels, calculate dynamically
+      let level = XP_LEVEL_THRESHOLDS.length + 1;
+      let cumulative = XP_LEVEL_THRESHOLDS[XP_LEVEL_THRESHOLDS.length - 1];
+      while (true) {
+        cumulative += Math.round(10 * Math.pow(level, 1.5));
+        if (totalXP < cumulative) {
+          return level;
+        }
+        level++;
+      }
+    };
+
+    // Get XP needed to reach a specific level
+    const getXPForLevel = (level) => {
+      if (level <= 1) return 0;
+      if (level <= XP_LEVEL_THRESHOLDS.length + 1) {
+        return XP_LEVEL_THRESHOLDS[level - 2];
+      }
+      // Calculate dynamically for levels beyond pre-computed
+      let cumulative = XP_LEVEL_THRESHOLDS[XP_LEVEL_THRESHOLDS.length - 1];
+      for (let l = XP_LEVEL_THRESHOLDS.length + 1; l < level; l++) {
+        cumulative += Math.round(10 * Math.pow(l, 1.5));
+      }
+      return cumulative;
+    };
+
+    // Get XP needed for next level
+    const getXPForNextLevel = (level) => {
+      if (level <= XP_LEVEL_THRESHOLDS.length) {
+        return XP_LEVEL_THRESHOLDS[level - 1];
+      }
+      // Calculate dynamically for levels beyond pre-computed
+      let cumulative = XP_LEVEL_THRESHOLDS[XP_LEVEL_THRESHOLDS.length - 1];
+      for (let l = XP_LEVEL_THRESHOLDS.length + 1; l <= level; l++) {
+        cumulative += Math.round(10 * Math.pow(l, 1.5));
+      }
+      return cumulative;
+    };
 
     // Icon components
     const BookOpen = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
@@ -236,7 +295,18 @@
       }, []);
 
       useEffect(() => {
-        if (!currentProfile) return;
+        if (!currentProfile || !authUser) return;
+        
+        // Migrate profile if needed (runs asynchronously)
+        const runMigration = async () => {
+          if (currentProfile.levelFormulaVersion !== LEVEL_FORMULA_VERSION) {
+            const migratedProfile = await migrateProfileLevelIfNeeded(authUser.uid, currentProfile);
+            if (migratedProfile !== currentProfile) {
+              setCurrentProfile(migratedProfile);
+            }
+          }
+        };
+        runMigration();
         
         loadProfileBooks(currentProfile.id);
         loadAllUsers();
@@ -312,6 +382,38 @@
           database.ref(`userProfiles/${uid}/${profileId}`).set(profileData),
           database.ref(`users/${profileId}`).set(profileData)
         ]);
+      };
+
+      // Migrate profile to new level formula if needed
+      const migrateProfileLevelIfNeeded = async (uid, profile) => {
+        // Check if migration is needed
+        if (profile.levelFormulaVersion === LEVEL_FORMULA_VERSION) {
+          return profile; // Already migrated
+        }
+        
+        // Recalculate level based on current XP (totalPages)
+        const newLevel = calculateLevelFromXP(profile.totalPages || 0);
+        const migratedProfile = {
+          ...profile,
+          level: newLevel,
+          levelFormulaVersion: LEVEL_FORMULA_VERSION
+        };
+        
+        // Save the migrated profile
+        await saveProfileAndUser(uid, profile.id, migratedProfile);
+        
+        // Update league leaderboards if any
+        if (profile.leagues?.length > 0) {
+          await Promise.all(
+            profile.leagues.map(leagueId => 
+              database.ref(`leagueLeaderboards/${leagueId}/${profile.id}`).update({
+                level: newLevel
+              })
+            )
+          );
+        }
+        
+        return migratedProfile;
       };
 
       const updateLeagueLeaderboard = async (leagueId, profileId, profile = currentProfile) => {
@@ -417,6 +519,7 @@
               isMainAccount: true,
               totalPages: 0,
               level: 1,
+              levelFormulaVersion: LEVEL_FORMULA_VERSION,
               currentStreak: 0,
               longestStreak: 0,
               lastReadDate: null,
@@ -452,6 +555,7 @@
           isMainAccount: false,
           totalPages: 0,
           level: 1,
+          levelFormulaVersion: LEVEL_FORMULA_VERSION,
           currentStreak: 0,
           longestStreak: 0,
           lastReadDate: null,
@@ -512,7 +616,7 @@
         );
       
         const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
-        const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
+        const newLevel = calculateLevelFromXP(totalPagesAcrossAllBooks);
         const streakData = checkAndUpdateStreak(currentProfile, Math.max(0, difference));
         const wasStreakActive = currentProfile.currentStreak > 0;
         
@@ -520,6 +624,7 @@
           ...currentProfile,
           totalPages: totalPagesAcrossAllBooks,
           level: newLevel,
+          levelFormulaVersion: LEVEL_FORMULA_VERSION,
           ...streakData
         };
       
@@ -572,7 +677,13 @@
         clearError();
       };
 
-      const calculateProgress = (totalPages) => ((totalPages % PAGES_PER_LEVEL) / PAGES_PER_LEVEL) * 100;
+      const calculateProgress = (totalXP, level) => {
+        const currentLevelXP = getXPForLevel(level);
+        const nextLevelXP = getXPForNextLevel(level);
+        const xpInCurrentLevel = totalXP - currentLevelXP;
+        const xpNeededForLevel = nextLevelXP - currentLevelXP;
+        return (xpInCurrentLevel / xpNeededForLevel) * 100;
+      };
 
       const getLeaderboard = () => {
         const league = leagues[currentLeagueId];
@@ -694,7 +805,7 @@
                   >
                     <div className="text-xl font-bold text-gray-800 mb-2">{profile.name}</div>
                     <div className="text-sm text-gray-600">Level {profile.level}</div>
-                    <div className="text-sm text-gray-600">{profile.totalPages} sider lest</div>
+                    <div className="text-sm text-gray-600">{profile.totalPages} XP</div>
                   </button>
                 ))}
               </div>
@@ -744,7 +855,7 @@
         );
       }
 
-      const progress = calculateProgress(currentProfile.totalPages);
+      const progress = calculateProgress(currentProfile.totalPages, currentProfile.level);
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -819,7 +930,7 @@
                   />
                 </div>
                 <div className="text-sm text-gray-600 text-center">
-                  {currentProfile.totalPages % PAGES_PER_LEVEL} / {PAGES_PER_LEVEL} sider til Level {currentProfile.level + 1}
+                  {currentProfile.totalPages - getXPForLevel(currentProfile.level)} / {getXPForNextLevel(currentProfile.level) - getXPForLevel(currentProfile.level)} XP til Level {currentProfile.level + 1}
                 </div>
               </div>
               
@@ -1105,7 +1216,7 @@
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
-                            <div className="text-sm text-gray-500">sider lest</div>
+                            <div className="text-sm text-gray-500">XP</div>
                           </div>
                         </div>
                       ))}
