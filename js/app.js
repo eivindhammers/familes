@@ -37,7 +37,8 @@ const {
   BookForm,
   BookList,
   Leaderboard,
-  LeagueManager
+  LeagueManager,
+  LevelUpOverlay
 } = window;
 
 const { PAGES_PER_LEVEL, DAILY_PAGES_GOAL } = APP_CONSTANTS;
@@ -73,6 +74,10 @@ const BookContestApp = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showStreakMessage, setShowStreakMessage] = useState(false);
+  
+  // Level-up state
+  const [levelUpQueue, setLevelUpQueue] = useState([]);
+  const [currentLevelUp, setCurrentLevelUp] = useState(null);
   
   // Leaderboard state
   const [users, setUsers] = useState({});
@@ -112,6 +117,22 @@ const BookContestApp = () => {
     setSuggestions([]);
     setShowSuggestions(false);
   };
+
+  // Process level-up queue
+  useEffect(() => {
+    if (levelUpQueue.length > 0 && !currentLevelUp) {
+      const nextLevel = levelUpQueue[0];
+      setCurrentLevelUp(nextLevel);
+      setLevelUpQueue(prev => prev.slice(1));
+      
+      // Display duration: 4s for single level, 2s per level for multiple
+      const displayDuration = levelUpQueue.length > 0 ? 2000 : 4000;
+      
+      setTimeout(() => {
+        setCurrentLevelUp(null);
+      }, displayDuration);
+    }
+  }, [levelUpQueue, currentLevelUp]);
 
   // Authentication handlers
   const handleAuth = async () => {
@@ -257,6 +278,7 @@ const BookContestApp = () => {
   
     const totalPagesAcrossAllBooks = updatedBooks.reduce((sum, book) => sum + book.pagesRead, 0);
     const newLevel = Math.floor(totalPagesAcrossAllBooks / PAGES_PER_LEVEL) + 1;
+    const oldLevel = currentProfile.level;
   
     const streakData = useStreakCalculation(currentProfile, difference > 0 ? difference : 0);
     const wasStreakActive = currentProfile.currentStreak > 0;
@@ -292,6 +314,15 @@ const BookContestApp = () => {
     }
     
     setCurrentProfile(updatedProfile);
+    
+    // Check for level-up(s) and add to queue
+    if (newLevel > oldLevel) {
+      const levelsGained = [];
+      for (let level = oldLevel + 1; level <= newLevel; level++) {
+        levelsGained.push(level);
+      }
+      setLevelUpQueue(prev => [...prev, ...levelsGained]);
+    }
     
     if (!wasStreakActive && streakData.currentStreak > 0) {
       setShowStreakMessage(true);
@@ -489,6 +520,13 @@ const BookContestApp = () => {
   // Render main app
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {currentLevelUp && (
+        <LevelUpOverlay 
+          level={currentLevelUp}
+          onClose={() => setCurrentLevelUp(null)}
+        />
+      )}
+      
       <div className="max-w-6xl mx-auto p-4">
         <ProfileHeader
           currentProfile={currentProfile}
