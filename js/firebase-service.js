@@ -175,19 +175,34 @@ window.addMemberToLeague = async (leagueId, profileId) => {
  */
 window.addLeagueToProfile = async (uid, profileId, leagueId) => {
   const { database } = window;
-  const profileRef = database.ref(`userProfiles/${uid}/${profileId}`);
-  const snapshot = await profileRef.once('value');
-  const profile = snapshot.val();
+  const profileRef = database.ref(`userProfiles/${uid}/${profileId}/leagues`);
   
-  if (!profile) {
-    throw new Error('Profile not found');
-  }
-  
-  const leagues = profile.leagues || [];
-  if (!leagues.includes(leagueId)) {
-    leagues.push(leagueId);
-    await profileRef.update({ leagues });
-  }
+  return new Promise((resolve, reject) => {
+    profileRef.transaction((currentLeagues) => {
+      // Initialize as empty array if leagues doesn't exist
+      if (currentLeagues === null) {
+        return [leagueId];
+      }
+      
+      // Ensure we're working with an array
+      const leagues = Array.isArray(currentLeagues) ? currentLeagues : [];
+      
+      // Add league if not already present
+      if (!leagues.includes(leagueId)) {
+        leagues.push(leagueId);
+      }
+      
+      return leagues;
+    }, (error, committed, snapshot) => {
+      if (error) {
+        reject(error);
+      } else if (committed) {
+        resolve(snapshot.val());
+      } else {
+        reject(new Error('Transaction not committed'));
+      }
+    });
+  });
 };
 
 /**

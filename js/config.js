@@ -174,6 +174,9 @@ window.Icons = {
     strokeLinejoin: "round"
   }, [
     React.createElement("circle", { key: "1", cx: "12", cy: "12", r: "3" }),
-    React.createElement("path", { key: "2", d: "M12 1v6m0 6v6m0-18l-2.5 4.33M12 1l2.5 4.33M1 12h6m6 0h6m-18 0l4.33-2.5M1 12l4.33 2.5m17.67-2.5l-4.33-2.5M23 12l-4.33 2.5m-6.67 8.5l-2.5-4.33M12 23l2.5-4.33" })
+    React.createElement("path", { key: "2", d: "M12 1v6m0 6v6" }),
+    React.createElement("path", { key: "3", d: "m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24" }),
+    React.createElement("path", { key: "4", d: "M1 12h6m6 0h6" }),
+    React.createElement("path", { key: "5", d: "m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" })
   ])
 };

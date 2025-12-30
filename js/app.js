@@ -320,11 +320,11 @@ const BookContestApp = () => {
         const maxAttempts = 10;
         
         do {
-          code = generateLeagueCode();
-          attempts++;
-          if (attempts > maxAttempts) {
+          if (attempts >= maxAttempts) {
             throw new Error('Kunne ikke generere unik ligakode');
           }
+          code = generateLeagueCode();
+          attempts++;
         } while (await leagueCodeExists(code));
         
         const leagueId = await createLeague(newLeagueName.trim(), code, currentProfile.id);
