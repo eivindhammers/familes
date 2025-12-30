@@ -199,7 +199,7 @@ window.addLeagueToProfile = async (uid, profileId, leagueId) => {
       } else if (committed) {
         resolve(snapshot.val());
       } else {
-        reject(new Error('Transaction not committed'));
+        reject(new Error('Failed to update profile leagues - transaction aborted due to concurrent modifications'));
       }
     });
   });

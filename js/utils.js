@@ -56,6 +56,8 @@ window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
 
 /**
  * Generate a random 6-character league code
+ * Uses alphanumeric characters excluding confusable ones (I, O, 0, 1)
+ * to reduce user errors when entering codes
  * @returns {string} Random league code
  */
 window.generateLeagueCode = () => {
