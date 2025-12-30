@@ -5,11 +5,12 @@
 
 /**
  * Hook for streak calculation and update logic
+ * Streaks are based on pages read (not XP earned) to encourage actual reading
  * @param {Object} profile - Current profile object
- * @param {number} pagesToday - Number of pages read today
+ * @param {number} pagesAdded - Number of pages read today
  * @returns {Object} Updated streak data
  */
-window.useStreakCalculation = (profile, pagesToday) => {
+window.useStreakCalculation = (profile, pagesAdded) => {
   const { getTodayString } = window;
   const { DAILY_PAGES_GOAL } = window.APP_CONSTANTS;
   
@@ -24,9 +25,9 @@ window.useStreakCalculation = (profile, pagesToday) => {
   let pagesReadToday = profile.pagesReadToday || 0;
 
   if (lastReadDate === today) {
-    pagesReadToday += pagesToday;
+    pagesReadToday += pagesAdded;
   } else {
-    pagesReadToday = pagesToday;
+    pagesReadToday = pagesAdded;
   }
 
   if (pagesReadToday >= DAILY_PAGES_GOAL) {

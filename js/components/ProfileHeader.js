@@ -9,7 +9,7 @@ window.ProfileHeader = ({
   handleLogout,
   showStreakMessage,
   progress,
-  PAGES_PER_LEVEL,
+  xpProgress,
   DAILY_PAGES_GOAL
 }) => {
   const { BookOpen, LogOut, Flame } = window.Icons;
@@ -71,7 +71,7 @@ window.ProfileHeader = ({
           />
         </div>
         <div className="text-sm text-gray-600 text-center">
-          {currentProfile.totalPages % PAGES_PER_LEVEL} / {PAGES_PER_LEVEL} sider til Level {currentProfile.level + 1}
+          {xpProgress.currentXP} / {xpProgress.neededXP} XP til Level {currentProfile.level + 1}
         </div>
       </div>
       
@@ -91,7 +91,7 @@ window.ProfileHeader = ({
         
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-800 mb-1">{currentProfile.pagesReadToday || 0}</div>
-          <div className="text-sm text-gray-600">I dag ({DAILY_PAGES_GOAL}+ for streak)</div>
+          <div className="text-sm text-gray-600">Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</div>
         </div>
       </div>
     </div>

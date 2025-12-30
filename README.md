@@ -103,16 +103,17 @@ The codebase is now organized into logical, single-responsibility modules:
 
 Edit `js/config.js` to change:
 - Firebase credentials
-- Pages per level (currently 20)
-- Daily reading goal (currently 5)
+- XP leveling parameters (base XP, multiplier)
+- Daily pages goal for streaks (currently 5)
 
 ### Customizing Constants
 
 ```javascript
 // In config.js
 window.APP_CONSTANTS = {
-  PAGES_PER_LEVEL: 20,      // Change to 50, 100, etc.
-  DAILY_PAGES_GOAL: 5       // Change to 10, 20, etc.
+  XP_BASE: 10,          // XP needed for first level up
+  XP_MULTIPLIER: 1.5,   // Each level requires 50% more XP than the previous
+  DAILY_PAGES_GOAL: 5   // Pages needed per day to maintain streak (streaks are about reading, not XP)
 };
 ```
 
