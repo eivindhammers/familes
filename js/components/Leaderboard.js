@@ -21,9 +21,13 @@ window.Leaderboard = ({
     : [];
   
   // Determine which leaderboard to show
-  const leaderboardData = currentLeagueId && leagueLeaderboard
-    ? getLeaderboard(null, currentLeagueId, leagueLeaderboard)
-    : getLeaderboard(users);
+  // If user has no leagues, show empty array
+  // If user has leagues but none selected, select the first one
+  const leaderboardData = userLeagues.length === 0
+    ? []
+    : currentLeagueId && leagueLeaderboard
+      ? getLeaderboard(null, currentLeagueId, leagueLeaderboard)
+      : [];
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -41,9 +45,9 @@ window.Leaderboard = ({
             <select
               value={currentLeagueId || ''}
               onChange={(e) => setCurrentLeagueId(e.target.value || null)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">Global ledertavle</option>
+              <option value="">Velg en liga...</option>
               {userLeagues.map(league => (
                 <option key={league.id} value={league.id}>
                   {league.name}
@@ -62,43 +66,51 @@ window.Leaderboard = ({
       </div>
       
       <div className="space-y-3">
-        {leaderboardData.map(user => (
-          <div
-            key={user.id}
-            className={`flex items-center justify-between p-4 rounded-lg ${
-              user.id === currentProfile.id
-                ? 'bg-indigo-50 border-2 border-indigo-300'
-                : 'bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`text-2xl font-bold ${
-                user.rank === 1 ? 'text-yellow-500' :
-                user.rank === 2 ? 'text-gray-400' :
-                user.rank === 3 ? 'text-amber-600' :
-                'text-gray-400'
-              }`}>
-                #{user.rank}
-              </div>
-              <div>
-                <div className="font-semibold text-gray-800 flex items-center gap-2">
-                  {user.name}
-                  {user.currentStreak > 0 && (
-                    <span className="flex items-center gap-1 text-orange-500 text-sm">
-                      <Flame className="w-4 h-4" />
-                      {user.currentStreak}
-                    </span>
-                  )}
+        {leaderboardData.length > 0 ? (
+          leaderboardData.map(user => (
+            <div
+              key={user.id}
+              className={`flex items-center justify-between p-4 rounded-lg ${
+                user.id === currentProfile.id
+                  ? 'bg-indigo-50 border-2 border-indigo-300'
+                  : 'bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`text-2xl font-bold ${
+                  user.rank === 1 ? 'text-yellow-500' :
+                  user.rank === 2 ? 'text-gray-400' :
+                  user.rank === 3 ? 'text-amber-600' :
+                  'text-gray-400'
+                }`}>
+                  #{user.rank}
                 </div>
-                <div className="text-sm text-gray-500">Level {user.level}</div>
+                <div>
+                  <div className="font-semibold text-gray-800 flex items-center gap-2">
+                    {user.name}
+                    {user.currentStreak > 0 && (
+                      <span className="flex items-center gap-1 text-orange-500 text-sm">
+                        <Flame className="w-4 h-4" />
+                        {user.currentStreak}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">Level {user.level}</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
+                <div className="text-sm text-gray-500">sider lest</div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-indigo-600">{user.totalPages}</div>
-              <div className="text-sm text-gray-500">sider lest</div>
+          ))
+        ) : (
+          userLeagues.length > 0 && !currentLeagueId && (
+            <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+              Velg en liga fra nedtrekksmenyen over for å se ledertavlen.
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
     </div>
   );
