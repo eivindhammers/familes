@@ -40,7 +40,8 @@ const {
   BookList,
   Leaderboard,
   LeagueManager,
-  LevelUpOverlay
+  LevelUpOverlay,
+  Footer
 } = window;
 
 const { DAILY_PAGES_GOAL } = APP_CONSTANTS;
@@ -579,38 +580,39 @@ const BookContestApp = () => {
           DAILY_PAGES_GOAL={DAILY_PAGES_GOAL}
         />
 
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-1 sm:gap-2 mb-6 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('myBooks')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'myBooks'
                 ? 'bg-white shadow-md text-indigo-600'
                 : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
-            <BookOpen className="w-5 h-5" />
-            Mine bøker
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="sm:hidden">Bøker</span>
+            <span className="hidden sm:inline">Mine bøker</span>
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'leaderboard'
                 ? 'bg-white shadow-md text-indigo-600'
                 : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
-            <Users className="w-5 h-5" />
+            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             Ledertavle
           </button>
           <button
             onClick={() => setActiveTab('admin')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'admin'
                 ? 'bg-white shadow-md text-indigo-600'
                 : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             Ligaer
           </button>
         </div>
@@ -664,6 +666,8 @@ const BookContestApp = () => {
             error={error}
           />
         )}
+        
+        <Footer />
       </div>
     </div>
   );
