@@ -69,7 +69,7 @@ window.BookList = ({
                       placeholder="Totalt lest..."
                       value={pageUpdate}
                       onChange={(e) => setPageUpdate(e.target.value)}
-                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
                       autoFocus
                       onFocus={(e) => e.target.select()}
                     />
@@ -96,7 +96,7 @@ window.BookList = ({
                       className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                     >
                       <TrendingUp className="w-4 h-4" />
-                      Oppdater leste sider
+                      Legg til sider
                     </button>
                     <button
                       onClick={() => deleteBook(book.id)}
