@@ -185,7 +185,7 @@ window.FriendsManager = ({
                   
                   {/* Expanded books list */}
                   {isExpanded && (
-                    <div className="mt-4 pl-13 border-t pt-4">
+                    <div className="mt-4 ml-12 border-t pt-4">
                       {friendBooks.length === 0 ? (
                         <div className="text-sm text-gray-500">Ingen bøker registrert</div>
                       ) : (
