@@ -239,3 +239,127 @@ window.loadLeagueLeaderboard = (leagueId, callback) => {
     callback(data);
   });
 };
+
+// ============ Friend System Functions ============
+
+/**
+ * Send a friend request from one profile to another
+ * @param {string} fromProfileId - Profile ID of the sender
+ * @param {string} toProfileId - Profile ID of the recipient
+ */
+window.sendFriendRequest = async (fromProfileId, toProfileId) => {
+  const { database } = window;
+  const timestamp = new Date().toISOString();
+  
+  const updates = {};
+  updates[`friendships/${fromProfileId}/requests/outgoing/${toProfileId}`] = { timestamp };
+  updates[`friendships/${toProfileId}/requests/incoming/${fromProfileId}`] = { timestamp };
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Accept a friend request
+ * @param {string} myProfileId - Profile ID of the accepter
+ * @param {string} fromProfileId - Profile ID of the requester
+ */
+window.acceptFriendRequest = async (myProfileId, fromProfileId) => {
+  const { database } = window;
+  const timestamp = new Date().toISOString();
+  
+  const updates = {};
+  // Add to friends lists for both profiles
+  updates[`friendships/${myProfileId}/friends/${fromProfileId}`] = { since: timestamp };
+  updates[`friendships/${fromProfileId}/friends/${myProfileId}`] = { since: timestamp };
+  // Remove the request from both sides
+  updates[`friendships/${myProfileId}/requests/incoming/${fromProfileId}`] = null;
+  updates[`friendships/${fromProfileId}/requests/outgoing/${myProfileId}`] = null;
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Decline a friend request
+ * @param {string} myProfileId - Profile ID of the decliner
+ * @param {string} fromProfileId - Profile ID of the requester
+ */
+window.declineFriendRequest = async (myProfileId, fromProfileId) => {
+  const { database } = window;
+  
+  const updates = {};
+  updates[`friendships/${myProfileId}/requests/incoming/${fromProfileId}`] = null;
+  updates[`friendships/${fromProfileId}/requests/outgoing/${myProfileId}`] = null;
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Cancel an outgoing friend request
+ * @param {string} myProfileId - Profile ID of the canceller
+ * @param {string} toProfileId - Profile ID of the recipient
+ */
+window.cancelFriendRequest = async (myProfileId, toProfileId) => {
+  const { database } = window;
+  
+  const updates = {};
+  updates[`friendships/${myProfileId}/requests/outgoing/${toProfileId}`] = null;
+  updates[`friendships/${toProfileId}/requests/incoming/${myProfileId}`] = null;
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Remove a friend from both profiles
+ * @param {string} myProfileId - Profile ID of the remover
+ * @param {string} friendProfileId - Profile ID of the friend to remove
+ */
+window.removeFriend = async (myProfileId, friendProfileId) => {
+  const { database } = window;
+  
+  const updates = {};
+  updates[`friendships/${myProfileId}/friends/${friendProfileId}`] = null;
+  updates[`friendships/${friendProfileId}/friends/${myProfileId}`] = null;
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Load friendships for a profile and set up real-time listener
+ * @param {string} profileId - Profile identifier
+ * @param {Function} callback - Callback to receive friendships data
+ */
+window.loadFriendships = (profileId, callback) => {
+  const { database } = window;
+  const friendshipsRef = database.ref(`friendships/${profileId}`);
+  friendshipsRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    callback(data);
+  });
+};
+
+/**
+ * Search users by name (case-insensitive partial match)
+ * @param {string} searchTerm - Search term to match against user names
+ * @param {Object} users - Object of all users keyed by profile ID
+ * @returns {Array} Array of matching users
+ */
+window.searchUsersByName = (searchTerm, users) => {
+  if (!searchTerm || !users) return [];
+  
+  const lowerSearchTerm = searchTerm.toLowerCase();
+  return Object.values(users).filter(user => 
+    user.name && user.name.toLowerCase().includes(lowerSearchTerm)
+  );
+};
+
+/**
+ * Load books for a specific profile (one-time fetch)
+ * @param {string} profileId - Profile identifier
+ * @returns {Promise<Array>} Array of books
+ */
+window.loadProfileBooksOnce = async (profileId) => {
+  const { database } = window;
+  const snapshot = await database.ref(`books/${profileId}`).once('value');
+  const data = snapshot.val();
+  return data ? Object.values(data) : [];
+};
