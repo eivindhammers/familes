@@ -67,7 +67,7 @@ window.ProfileHeader = ({
             
             {/* Notification Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="p-3 border-b border-gray-200">
                   <h3 className="font-semibold text-gray-800">Varsler</h3>
                 </div>
