@@ -28,6 +28,13 @@ const {
   addLeagueToProfile,
   updateLeagueLeaderboard,
   loadLeagueLeaderboard,
+  // Friend system
+  sendFriendRequest,
+  acceptFriendRequest,
+  declineFriendRequest,
+  cancelFriendRequest,
+  removeFriend,
+  loadFriendships,
   // Google Books API
   searchGoogleBooks,
   // Hooks
@@ -40,12 +47,13 @@ const {
   BookList,
   Leaderboard,
   LeagueManager,
+  FriendsManager,
   LevelUpOverlay,
   Footer
 } = window;
 
 const { DAILY_PAGES_GOAL } = APP_CONSTANTS;
-const { BookOpen, Users, Settings } = Icons;
+const { BookOpen, Users, Settings, UserPlus } = Icons;
 
 // Level-up display durations (in milliseconds)
 const SINGLE_LEVELUP_DURATION = 4000; // 4 seconds for single level-up
@@ -97,6 +105,10 @@ const BookContestApp = () => {
   const [joinLeagueCode, setJoinLeagueCode] = useState('');
   const [leagueAction, setLeagueAction] = useState('join');
   const [leagueLeaderboard, setLeagueLeaderboard] = useState({});
+
+  // Friends state
+  const [friendships, setFriendships] = useState(null);
+  const [friendError, setFriendError] = useState('');
 
   // Google Books search with debounce
   useEffect(() => {
@@ -451,6 +463,54 @@ const BookContestApp = () => {
     }
   };
 
+  // Friend handlers
+  const handleSendFriendRequest = async (toProfileId) => {
+    setFriendError('');
+    try {
+      await sendFriendRequest(currentProfile.id, toProfileId);
+    } catch (err) {
+      setFriendError('Kunne ikke sende venneforespørsel: ' + err.message);
+    }
+  };
+
+  const handleAcceptFriendRequest = async (fromProfileId) => {
+    setFriendError('');
+    try {
+      await acceptFriendRequest(currentProfile.id, fromProfileId);
+    } catch (err) {
+      setFriendError('Kunne ikke godta venneforespørsel: ' + err.message);
+    }
+  };
+
+  const handleDeclineFriendRequest = async (fromProfileId) => {
+    setFriendError('');
+    try {
+      await declineFriendRequest(currentProfile.id, fromProfileId);
+    } catch (err) {
+      setFriendError('Kunne ikke avslå venneforespørsel: ' + err.message);
+    }
+  };
+
+  const handleCancelFriendRequest = async (toProfileId) => {
+    setFriendError('');
+    try {
+      await cancelFriendRequest(currentProfile.id, toProfileId);
+    } catch (err) {
+      setFriendError('Kunne ikke avbryte venneforespørsel: ' + err.message);
+    }
+  };
+
+  const handleRemoveFriend = async (friendProfileId) => {
+    setFriendError('');
+    if (window.confirm('Er du sikker på at du vil fjerne denne vennen?')) {
+      try {
+        await removeFriend(currentProfile.id, friendProfileId);
+      } catch (err) {
+        setFriendError('Kunne ikke fjerne venn: ' + err.message);
+      }
+    }
+  };
+
   // Authentication listener
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -494,9 +554,18 @@ const BookContestApp = () => {
     }
   }, [currentProfile]);
 
-  // Reset league selection when profile changes
+  // Reset friendships and league selection when profile changes
   useEffect(() => {
     setCurrentLeagueId(null);
+    setFriendships(null);
+    
+    // Load friendships with proper cleanup when profile changes
+    if (currentProfile) {
+      const unsubscribe = loadFriendships(currentProfile.id, (data) => {
+        setFriendships(data);
+      });
+      return () => unsubscribe();
+    }
   }, [currentProfile?.id]);
 
   // Load league leaderboard when league is selected
@@ -605,6 +674,17 @@ const BookContestApp = () => {
             Ledertavle
           </button>
           <button
+            onClick={() => setActiveTab('friends')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
+              activeTab === 'friends'
+                ? 'bg-white shadow-md text-indigo-600'
+                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+            }`}
+          >
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
+            Venner
+          </button>
+          <button
             onClick={() => setActiveTab('admin')}
             className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'admin'
@@ -651,6 +731,19 @@ const BookContestApp = () => {
             currentLeagueId={currentLeagueId}
             setCurrentLeagueId={setCurrentLeagueId}
             leagueLeaderboard={leagueLeaderboard}
+          />
+        ) : activeTab === 'friends' ? (
+          <FriendsManager
+            friendships={friendships}
+            currentProfile={currentProfile}
+            users={users}
+            leagues={leagues}
+            onSendRequest={handleSendFriendRequest}
+            onAcceptRequest={handleAcceptFriendRequest}
+            onDeclineRequest={handleDeclineFriendRequest}
+            onCancelRequest={handleCancelFriendRequest}
+            onRemoveFriend={handleRemoveFriend}
+            error={friendError}
           />
         ) : (
           <LeagueManager
