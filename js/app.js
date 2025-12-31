@@ -35,6 +35,7 @@ const {
   cancelFriendRequest,
   removeFriend,
   loadFriendships,
+  dismissAcceptedNotification,
   // Google Books API
   searchGoogleBooks,
   // Hooks
@@ -511,6 +512,14 @@ const BookContestApp = () => {
     }
   };
 
+  const handleDismissAcceptedNotification = async (accepterProfileId) => {
+    try {
+      await dismissAcceptedNotification(currentProfile.id, accepterProfileId);
+    } catch (err) {
+      console.error('Kunne ikke fjerne varsel:', err.message);
+    }
+  };
+
   // Authentication listener
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -649,6 +658,9 @@ const BookContestApp = () => {
           DAILY_PAGES_GOAL={DAILY_PAGES_GOAL}
           friendships={friendships}
           users={users}
+          onAcceptRequest={handleAcceptFriendRequest}
+          onDeclineRequest={handleDeclineFriendRequest}
+          onDismissAcceptedNotification={handleDismissAcceptedNotification}
         />
 
         <div className="flex gap-1 sm:gap-2 mb-6 w-full sm:w-auto">
