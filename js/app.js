@@ -629,6 +629,11 @@ const BookContestApp = () => {
   const progress = calculateProgress(totalXP);
   const xpProgress = getXPProgress(totalXP);
 
+  // Count pending incoming friend requests for notification badge
+  const pendingFriendRequestCount = friendships?.requests?.incoming 
+    ? Object.keys(friendships.requests.incoming).length 
+    : 0;
+
   // Render main app
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -675,7 +680,7 @@ const BookContestApp = () => {
           </button>
           <button
             onClick={() => setActiveTab('friends')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base relative ${
               activeTab === 'friends'
                 ? 'bg-white shadow-md text-indigo-600'
                 : 'bg-white/50 text-gray-600 hover:bg-white/80'
@@ -683,6 +688,11 @@ const BookContestApp = () => {
           >
             <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
             Venner
+            {pendingFriendRequestCount > 0 && (
+              <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] flex items-center justify-center px-1">
+                {pendingFriendRequestCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setActiveTab('admin')}
