@@ -39,10 +39,10 @@ window.BookList = ({
           
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-800 leading-tight">{book.title}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg text-gray-800 leading-tight truncate">{book.title}</h3>
                     <div className="flex items-center gap-3">
-                      <p className="text-gray-600 text-sm">av {book.author}</p>
+                      <p className="text-gray-600 text-sm truncate">av {book.author}</p>
                       <button 
                         onClick={() => deleteBook(book.id)}
                         className="text-gray-400 hover:text-red-500 transition-colors p-1"
