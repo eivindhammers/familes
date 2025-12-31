@@ -35,6 +35,7 @@ const {
   cancelFriendRequest,
   removeFriend,
   loadFriendships,
+  dismissAcceptedNotification,
   // Google Books API
   searchGoogleBooks,
   // Hooks
@@ -109,6 +110,7 @@ const BookContestApp = () => {
   // Friends state
   const [friendships, setFriendships] = useState(null);
   const [friendError, setFriendError] = useState('');
+  const [friendSuccess, setFriendSuccess] = useState('');
 
   // Google Books search with debounce
   useEffect(() => {
@@ -466,8 +468,13 @@ const BookContestApp = () => {
   // Friend handlers
   const handleSendFriendRequest = async (toProfileId) => {
     setFriendError('');
+    setFriendSuccess('');
     try {
       await sendFriendRequest(currentProfile.id, toProfileId);
+      const toUser = users[toProfileId];
+      setFriendSuccess(`Venneforespørsel sendt til ${toUser?.name || 'bruker'}!`);
+      // Auto-clear success message after 3 seconds
+      setTimeout(() => setFriendSuccess(''), 3000);
     } catch (err) {
       setFriendError('Kunne ikke sende venneforespørsel: ' + err.message);
     }
@@ -475,8 +482,13 @@ const BookContestApp = () => {
 
   const handleAcceptFriendRequest = async (fromProfileId) => {
     setFriendError('');
+    setFriendSuccess('');
     try {
       await acceptFriendRequest(currentProfile.id, fromProfileId);
+      const fromUser = users[fromProfileId];
+      setFriendSuccess(`Du og ${fromUser?.name || 'bruker'} er nå venner!`);
+      // Auto-clear success message after 3 seconds
+      setTimeout(() => setFriendSuccess(''), 3000);
     } catch (err) {
       setFriendError('Kunne ikke godta venneforespørsel: ' + err.message);
     }
@@ -484,6 +496,7 @@ const BookContestApp = () => {
 
   const handleDeclineFriendRequest = async (fromProfileId) => {
     setFriendError('');
+    setFriendSuccess('');
     try {
       await declineFriendRequest(currentProfile.id, fromProfileId);
     } catch (err) {
@@ -493,6 +506,7 @@ const BookContestApp = () => {
 
   const handleCancelFriendRequest = async (toProfileId) => {
     setFriendError('');
+    setFriendSuccess('');
     try {
       await cancelFriendRequest(currentProfile.id, toProfileId);
     } catch (err) {
@@ -502,12 +516,21 @@ const BookContestApp = () => {
 
   const handleRemoveFriend = async (friendProfileId) => {
     setFriendError('');
+    setFriendSuccess('');
     if (window.confirm('Er du sikker på at du vil fjerne denne vennen?')) {
       try {
         await removeFriend(currentProfile.id, friendProfileId);
       } catch (err) {
         setFriendError('Kunne ikke fjerne venn: ' + err.message);
       }
+    }
+  };
+
+  const handleDismissAcceptedNotification = async (accepterProfileId) => {
+    try {
+      await dismissAcceptedNotification(currentProfile.id, accepterProfileId);
+    } catch (err) {
+      console.error('Kunne ikke fjerne varsel:', err.message);
     }
   };
 
@@ -647,6 +670,12 @@ const BookContestApp = () => {
           progress={progress}
           xpProgress={xpProgress}
           DAILY_PAGES_GOAL={DAILY_PAGES_GOAL}
+          friendships={friendships}
+          users={users}
+          onAcceptRequest={handleAcceptFriendRequest}
+          onDeclineRequest={handleDeclineFriendRequest}
+          onDismissAcceptedNotification={handleDismissAcceptedNotification}
+          friendSuccess={friendSuccess}
         />
 
         <div className="flex gap-1 sm:gap-2 mb-6 w-full sm:w-auto">
@@ -744,6 +773,7 @@ const BookContestApp = () => {
             onCancelRequest={handleCancelFriendRequest}
             onRemoveFriend={handleRemoveFriend}
             error={friendError}
+            success={friendSuccess}
           />
         ) : (
           <LeagueManager

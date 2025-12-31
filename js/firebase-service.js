@@ -274,8 +274,21 @@ window.acceptFriendRequest = async (myProfileId, fromProfileId) => {
   // Remove the request from both sides
   updates[`friendships/${myProfileId}/requests/incoming/${fromProfileId}`] = null;
   updates[`friendships/${fromProfileId}/requests/outgoing/${myProfileId}`] = null;
+  // Add notification for the original requester that their request was accepted
+  updates[`friendships/${fromProfileId}/notifications/accepted/${myProfileId}`] = { timestamp };
   
   await database.ref().update(updates);
+};
+
+/**
+ * Dismiss an accepted friend notification
+ * @param {string} myProfileId - Profile ID of the user dismissing the notification
+ * @param {string} accepterProfileId - Profile ID of the user who accepted the request
+ * @returns {Promise<void>}
+ */
+window.dismissAcceptedNotification = async (myProfileId, accepterProfileId) => {
+  const { database } = window;
+  await database.ref(`friendships/${myProfileId}/notifications/accepted/${accepterProfileId}`).remove();
 };
 
 /**

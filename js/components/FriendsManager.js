@@ -13,7 +13,8 @@ window.FriendsManager = ({
   onDeclineRequest,
   onCancelRequest,
   onRemoveFriend,
-  error
+  error,
+  success
 }) => {
   const { useState, useEffect } = React;
   const { Flame, Plus, Trash2 } = window.Icons;
@@ -360,6 +361,13 @@ window.FriendsManager = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Success Display */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          {success}
         </div>
       )}
       

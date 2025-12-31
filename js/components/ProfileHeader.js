@@ -10,9 +10,46 @@ window.ProfileHeader = ({
   showStreakMessage,
   progress,
   xpProgress,
-  DAILY_PAGES_GOAL
+  DAILY_PAGES_GOAL,
+  friendships,
+  users,
+  onAcceptRequest,
+  onDeclineRequest,
+  onDismissAcceptedNotification,
+  friendSuccess
 }) => {
-  const { BookOpen, LogOut, Flame } = window.Icons;
+  const { useState, useRef, useEffect } = React;
+  const { BookOpen, LogOut, Flame, Bell, Check, X } = window.Icons;
+  
+  // Notification dropdown state
+  const [showNotifications, setShowNotifications] = useState(false);
+  const dropdownRef = useRef(null);
+  
+  // Calculate pending friend requests
+  const incomingRequests = friendships?.requests?.incoming || {};
+  const pendingCount = Object.keys(incomingRequests).length;
+  
+  // Calculate accepted notifications (when someone accepts your friend request)
+  const acceptedNotifications = friendships?.notifications?.accepted || {};
+  const acceptedCount = Object.keys(acceptedNotifications).length;
+  
+  // Total notification count
+  const totalNotifications = pendingCount + acceptedCount;
+  
+  // Get user data for a profile ID
+  const getUserData = (profileId) => users?.[profileId] || null;
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
@@ -25,6 +62,104 @@ window.ProfileHeader = ({
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          {/* Notification Button */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-1"
+            >
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+              {totalNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {totalNotifications}
+                </span>
+              )}
+            </button>
+            
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="p-3 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-800">Varsler</h3>
+                </div>
+                {/* Success message */}
+                {friendSuccess && (
+                  <div className="m-2 p-2 bg-green-100 border border-green-300 text-green-700 text-sm rounded-lg">
+                    {friendSuccess}
+                  </div>
+                )}
+                <div className="max-h-80 overflow-y-auto">
+                  {totalNotifications === 0 && !friendSuccess ? (
+                    <div className="p-4 text-center text-gray-500">
+                      Ingen varsler
+                    </div>
+                  ) : totalNotifications === 0 ? null : (
+                    <div className="p-2 space-y-2">
+                      {/* Accepted friend requests notifications */}
+                      {Object.keys(acceptedNotifications).map(accepterId => {
+                        const accepter = getUserData(accepterId);
+                        if (!accepter) return null;
+                        
+                        return (
+                          <div key={`accepted-${accepterId}`} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                              {accepter.name?.charAt(0).toUpperCase() || '?'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-800">{accepter.name}</div>
+                              <div className="text-xs text-green-600">Godtok venneforespørselen din</div>
+                            </div>
+                            <button
+                              onClick={() => onDismissAcceptedNotification(accepterId)}
+                              className="p-1 text-gray-400 hover:text-gray-600 transition"
+                              title="Fjern varsel"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Incoming friend requests */}
+                      {Object.keys(incomingRequests).map(fromId => {
+                        const requester = getUserData(fromId);
+                        if (!requester) return null;
+                        
+                        return (
+                          <div key={`request-${fromId}`} className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                              {requester.name?.charAt(0).toUpperCase() || '?'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-800">{requester.name}</div>
+                              <div className="text-xs text-gray-500">Vil bli din venn</div>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => onAcceptRequest(fromId)}
+                                className="p-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                                title="Godta"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => onDeclineRequest(fromId)}
+                                className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                                title="Avslå"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
           <button
             onClick={() => setCurrentProfile(null)}
             className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
