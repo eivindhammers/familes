@@ -551,15 +551,21 @@ const BookContestApp = () => {
       loadLeagues((data) => {
         setLeagues(data || {});
       });
-      loadFriendships(currentProfile.id, (data) => {
-        setFriendships(data);
-      });
     }
   }, [currentProfile]);
 
-  // Reset league selection when profile changes
+  // Reset friendships and league selection when profile changes
   useEffect(() => {
     setCurrentLeagueId(null);
+    setFriendships(null);
+    
+    // Load friendships with proper cleanup when profile changes
+    if (currentProfile) {
+      const unsubscribe = loadFriendships(currentProfile.id, (data) => {
+        setFriendships(data);
+      });
+      return () => unsubscribe();
+    }
   }, [currentProfile?.id]);
 
   // Load league leaderboard when league is selected

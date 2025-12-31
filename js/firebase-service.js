@@ -327,6 +327,7 @@ window.removeFriend = async (myProfileId, friendProfileId) => {
  * Load friendships for a profile and set up real-time listener
  * @param {string} profileId - Profile identifier
  * @param {Function} callback - Callback to receive friendships data
+ * @returns {Function} Unsubscribe function to clean up the listener
  */
 window.loadFriendships = (profileId, callback) => {
   const { database } = window;
@@ -335,6 +336,8 @@ window.loadFriendships = (profileId, callback) => {
     const data = snapshot.val();
     callback(data);
   });
+  // Return unsubscribe function
+  return () => friendshipsRef.off('value');
 };
 
 /**
