@@ -15,7 +15,8 @@ window.ProfileHeader = ({
   users,
   onAcceptRequest,
   onDeclineRequest,
-  onDismissAcceptedNotification
+  onDismissAcceptedNotification,
+  friendSuccess
 }) => {
   const { useState, useRef, useEffect } = React;
   const { BookOpen, LogOut, Flame, Bell, Check, X } = window.Icons;
@@ -81,12 +82,18 @@ window.ProfileHeader = ({
                 <div className="p-3 border-b border-gray-200">
                   <h3 className="font-semibold text-gray-800">Varsler</h3>
                 </div>
+                {/* Success message */}
+                {friendSuccess && (
+                  <div className="m-2 p-2 bg-green-100 border border-green-300 text-green-700 text-sm rounded-lg">
+                    {friendSuccess}
+                  </div>
+                )}
                 <div className="max-h-80 overflow-y-auto">
-                  {totalNotifications === 0 ? (
+                  {totalNotifications === 0 && !friendSuccess ? (
                     <div className="p-4 text-center text-gray-500">
                       Ingen varsler
                     </div>
-                  ) : (
+                  ) : totalNotifications === 0 ? null : (
                     <div className="p-2 space-y-2">
                       {/* Accepted friend requests notifications */}
                       {Object.keys(acceptedNotifications).map(accepterId => {
