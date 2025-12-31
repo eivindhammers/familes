@@ -46,8 +46,8 @@ window.BookList = ({
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <div className="text-2xl font-bold text-indigo-600">{book.pagesRead}</div>
-                    <div className="text-xs text-gray-500 whitespace-nowrap">
+                    <div className="text-lg font-bold text-indigo-600">{book.pagesRead}</div>
+                    <div className="text-sm text-gray-500 whitespace-nowrap">
                       {book.totalPages > 0 ? `/ ${book.totalPages} sider` : 'sider'}
                     </div>
                   </div>
@@ -69,7 +69,7 @@ window.BookList = ({
                       placeholder="Totalt lest..."
                       value={pageUpdate}
                       onChange={(e) => setPageUpdate(e.target.value)}
-                      className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
                       autoFocus
                       onFocus={(e) => e.target.select()}
                     />
