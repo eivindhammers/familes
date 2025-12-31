@@ -17,6 +17,14 @@ window.BookList = ({
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Min leseliste</h2>
+      {books.length > 0 && (
+        <div className="bg-indigo-50 rounded-lg p-4 mb-4 flex items-center justify-between">
+          <span className="text-indigo-700 font-medium">Totalt leste sider:</span>
+          <span className="text-2xl font-bold text-indigo-600">
+            {books.reduce((total, book) => total + (book.pagesRead || 0), 0)}
+          </span>
+        </div>
+      )}
       {books.length === 0 ? (
         <p className="text-gray-500 text-center py-8">Ingen bøker ennå. Legg til din første bok ovenfor!</p>
       ) : (
