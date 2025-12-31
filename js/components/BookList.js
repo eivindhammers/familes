@@ -63,7 +63,7 @@ window.BookList = ({
                 )}
           
                 {selectedBook === book.id ? (
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     <input
                       type="number"
                       placeholder="Totalt lest..."
@@ -77,13 +77,13 @@ window.BookList = ({
                       onClick={() => updatePages(book.id)}
                       className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                     >
-                      Save
+                      Lagre
                     </button>
                     <button
                       onClick={() => { setSelectedBook(null); setPageUpdate(''); }}
                       className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
                     >
-                      Cancel
+                      Avbryt
                     </button>
                   </div>
                 ) : (
