@@ -222,10 +222,12 @@ const BookContestApp = () => {
     }
 
     const profileId = `${authUser.uid}_${Date.now()}`;
+    // If there are no existing profiles, this should be the main account
+    const shouldBeMainAccount = profiles.length === 0;
     const newProfile = {
       id: profileId,
       name: newProfileName.trim(),
-      isMainAccount: false,
+      isMainAccount: shouldBeMainAccount,
       totalPages: 0,
       totalXP: 0,
       level: 1,
