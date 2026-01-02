@@ -14,15 +14,20 @@ window.BookForm = ({
   setIsSearching,
   showSuggestions,
   setShowSuggestions,
-  selectBook
+  selectBook,
+  darkMode
 }) => {
   const { Plus } = window.Icons;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Legg til ny bok</h2>
+    <div className={`rounded-lg shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Legg til ny bok</h2>
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        <div className={`border px-4 py-3 rounded mb-4 ${
+          darkMode 
+            ? 'bg-red-900 bg-opacity-30 border-red-700 text-red-300' 
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
           {error}
         </div>
       )}
@@ -40,12 +45,20 @@ window.BookForm = ({
             onBlur={() => {
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+              darkMode 
+                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                : 'border-gray-300'
+            }`}
           />
           
           {showSuggestions && (suggestions.length > 0 || isSearching) && newBook.title && (
-            <div className="absolute z-10 w-full bg-white mt-1 border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-              {isSearching && <div className="p-2 text-gray-500 text-sm">Søker...</div>}
+            <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-xl max-h-60 overflow-y-auto ${
+              darkMode 
+                ? 'bg-gray-700 border-gray-600' 
+                : 'bg-white border-gray-200'
+            }`}>
+              {isSearching && <div className={`p-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Søker...</div>}
               {suggestions.map((book) => (
                 <div
                   key={book.id}
@@ -53,14 +66,18 @@ window.BookForm = ({
                     e.preventDefault();
                     selectBook(book);
                   }}
-                  className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100 last:border-0 flex items-start gap-2"
+                  className={`p-3 cursor-pointer border-b last:border-0 flex items-start gap-2 ${
+                    darkMode 
+                      ? 'hover:bg-indigo-900 border-gray-600' 
+                      : 'hover:bg-indigo-50 border-gray-100'
+                  }`}
                 >
                   {book.thumbnail && (
                     <img src={book.thumbnail} alt="" className="w-8 h-12 object-cover rounded" />
                   )}
                   <div>
-                    <div className="font-semibold text-sm text-gray-800">{book.title}</div>
-                    <div className="text-xs text-gray-500">{book.author} • {book.pages} sider</div>
+                    <div className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>{book.title}</div>
+                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{book.author} • {book.pages} sider</div>
                   </div>
                 </div>
               ))}
@@ -73,14 +90,22 @@ window.BookForm = ({
           placeholder="Forfatter"
           value={newBook.author}
           onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+              : 'border-gray-300'
+          }`}
         />
         <input
           type="number"
           placeholder="Antall sider"
           value={newBook.pages}
           onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+            darkMode 
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+              : 'border-gray-300'
+          }`}
         />
       </div>
       <button
