@@ -520,30 +520,37 @@ window.loadMessages = (conversationId, callback) => {
 
 /**
  * Mark all messages in a conversation as read for a specific user
+ * Note: Uses orderByChild query to efficiently filter messages by recipient.
+ * Only updates unread messages to minimize write operations.
  * @param {string} conversationId - Conversation ID
  * @param {string} userId - Profile ID of user marking messages as read
  */
 window.markMessagesAsRead = async (conversationId, userId) => {
   const { database } = window;
   
-  // Get all unread messages for this user
+  // Efficiently query only messages for this user using Firebase index
   const messagesSnapshot = await database.ref(`chats/${conversationId}/messages`)
     .orderByChild('recipientId')
     .equalTo(userId)
     .once('value');
   
-  if (!messagesSnapshot.exists()) return;
+  if (!messagesSnapshot.exists()) {
+    // Just reset the count if no messages found
+    await database.ref(`chats/${conversationId}/unreadCount/${userId}`).set(0);
+    return;
+  }
   
   const updates = {};
   const messages = messagesSnapshot.val();
   
+  // Only mark unread messages (skip already read ones)
   Object.entries(messages).forEach(([messageId, message]) => {
     if (!message.read) {
       updates[`chats/${conversationId}/messages/${messageId}/read`] = true;
     }
   });
   
-  // Reset unread count for this user
+  // Always reset unread count
   updates[`chats/${conversationId}/unreadCount/${userId}`] = 0;
   
   if (Object.keys(updates).length > 0) {
