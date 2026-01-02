@@ -40,10 +40,10 @@ window.ChatManager = ({
         new Date(a.timestamp) - new Date(b.timestamp)
       ) : [];
       setMessages(messagesList);
+      
+      // Mark messages as read whenever messages update (including new messages)
+      markMessagesAsRead(conversationId, currentProfile.id);
     });
-    
-    // Mark messages as read when opening chat
-    markMessagesAsRead(conversationId, currentProfile.id);
     
     return () => unsubscribe();
   }, [conversationId, currentProfile.id]);
