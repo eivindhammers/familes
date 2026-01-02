@@ -28,6 +28,10 @@ const {
   addLeagueToProfile,
   updateLeagueLeaderboard,
   loadLeagueLeaderboard,
+  // Profile management
+  deleteProfile,
+  setMainProfile,
+  deleteAllProfiles,
   // Friend system
   sendFriendRequest,
   acceptFriendRequest,
@@ -250,6 +254,47 @@ const BookContestApp = () => {
     setCurrentProfile(profile);
     setShowProfileManager(false);
     setActiveTab('myBooks');
+  };
+
+  // Profile management handlers
+  const handleDeleteProfile = async (profileId) => {
+    if (!window.confirm('Er du sikker på at du vil slette denne profilen? Alle bøker og lesehistorikk vil bli slettet permanent.')) {
+      return;
+    }
+    
+    try {
+      await deleteProfile(authUser.uid, profileId);
+      // If deleting the current profile, clear it
+      if (currentProfile && currentProfile.id === profileId) {
+        setCurrentProfile(null);
+      }
+      setError('');
+    } catch (err) {
+      setError('Kunne ikke slette profilen: ' + err.message);
+    }
+  };
+
+  const handleSetMainProfile = async (profileId) => {
+    try {
+      await setMainProfile(authUser.uid, profileId, profiles);
+      setError('');
+    } catch (err) {
+      setError('Kunne ikke sette hovedprofil: ' + err.message);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!window.confirm('Er du sikker på at du vil slette hele brukerkontoen? Dette vil slette alle profiler, bøker og data permanent, og du vil bli logget ut.')) {
+      return;
+    }
+    
+    try {
+      await deleteAllProfiles(authUser.uid, profiles);
+      await auth.signOut();
+      setError('');
+    } catch (err) {
+      setError('Kunne ikke slette brukerkontoen: ' + err.message);
+    }
   };
 
   // Book handlers
@@ -643,6 +688,9 @@ const BookContestApp = () => {
         newProfileName={newProfileName}
         setNewProfileName={setNewProfileName}
         createNewProfile={createNewProfile}
+        handleDeleteProfile={handleDeleteProfile}
+        handleSetMainProfile={handleSetMainProfile}
+        handleDeleteUser={handleDeleteUser}
         error={error}
         setError={setError}
       />
