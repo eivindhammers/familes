@@ -379,3 +379,73 @@ window.loadProfileBooksOnce = async (profileId) => {
   const data = snapshot.val();
   return data ? Object.values(data) : [];
 };
+
+// ============ Profile Management Functions ============
+
+/**
+ * Delete a profile and all associated data
+ * @param {string} uid - Firebase auth user ID
+ * @param {string} profileId - Profile ID to delete
+ */
+window.deleteProfile = async (uid, profileId) => {
+  const { database } = window;
+  
+  const updates = {};
+  // Delete from user profiles
+  updates[`userProfiles/${uid}/${profileId}`] = null;
+  // Delete from global users list
+  updates[`users/${profileId}`] = null;
+  // Delete books
+  updates[`books/${profileId}`] = null;
+  // Delete reading history
+  updates[`readingHistory/${profileId}`] = null;
+  // Delete friendships
+  updates[`friendships/${profileId}`] = null;
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Set a profile as the main account and unset others
+ * @param {string} uid - Firebase auth user ID
+ * @param {string} profileId - Profile ID to set as main
+ * @param {Array} allProfiles - Array of all user's profiles
+ */
+window.setMainProfile = async (uid, profileId, allProfiles) => {
+  const { database } = window;
+  
+  const updates = {};
+  // Update all profiles
+  for (const profile of allProfiles) {
+    const isMain = profile.id === profileId;
+    updates[`userProfiles/${uid}/${profile.id}/isMainAccount`] = isMain;
+    updates[`users/${profile.id}/isMainAccount`] = isMain;
+  }
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Delete all profiles for a user
+ * @param {string} uid - Firebase auth user ID
+ * @param {Array} profiles - Array of all user's profiles to delete
+ */
+window.deleteAllProfiles = async (uid, profiles) => {
+  const { database } = window;
+  
+  const updates = {};
+  for (const profile of profiles) {
+    // Delete from user profiles
+    updates[`userProfiles/${uid}/${profile.id}`] = null;
+    // Delete from global users list
+    updates[`users/${profile.id}`] = null;
+    // Delete books
+    updates[`books/${profile.id}`] = null;
+    // Delete reading history
+    updates[`readingHistory/${profile.id}`] = null;
+    // Delete friendships
+    updates[`friendships/${profile.id}`] = null;
+  }
+  
+  await database.ref().update(updates);
+};

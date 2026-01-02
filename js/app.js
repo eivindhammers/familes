@@ -28,6 +28,10 @@ const {
   addLeagueToProfile,
   updateLeagueLeaderboard,
   loadLeagueLeaderboard,
+  // Profile management
+  deleteProfile,
+  setMainProfile,
+  deleteAllProfiles,
   // Friend system
   sendFriendRequest,
   acceptFriendRequest,
@@ -221,11 +225,16 @@ const BookContestApp = () => {
       return;
     }
 
-    const profileId = `${authUser.uid}_${Date.now()}`;
+    // If there are no existing profiles, this should be the main account
+    const shouldBeMainAccount = profiles.length === 0;
+    // Main account gets "_main" suffix, others get timestamp
+    const profileId = shouldBeMainAccount 
+      ? `${authUser.uid}_main` 
+      : `${authUser.uid}_${Date.now()}`;
     const newProfile = {
       id: profileId,
       name: newProfileName.trim(),
-      isMainAccount: false,
+      isMainAccount: shouldBeMainAccount,
       totalPages: 0,
       totalXP: 0,
       level: 1,
@@ -248,6 +257,57 @@ const BookContestApp = () => {
     setCurrentProfile(profile);
     setShowProfileManager(false);
     setActiveTab('myBooks');
+  };
+
+  // Profile management handlers
+  const handleDeleteProfile = async (profileId) => {
+    if (!window.confirm('Er du sikker på at du vil slette denne profilen? Alle bøker og lesehistorikk vil bli slettet permanent.')) {
+      return;
+    }
+    
+    try {
+      await deleteProfile(authUser.uid, profileId);
+      // If deleting the current profile, clear it
+      if (currentProfile && currentProfile.id === profileId) {
+        setCurrentProfile(null);
+      }
+      setError('');
+    } catch (err) {
+      setError('Kunne ikke slette profilen: ' + err.message);
+    }
+  };
+
+  const handleSetMainProfile = async (profileId) => {
+    try {
+      await setMainProfile(authUser.uid, profileId, profiles);
+      setError('');
+    } catch (err) {
+      setError('Kunne ikke sette hovedprofil: ' + err.message);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!window.confirm('Er du sikker på at du vil slette hele brukerkontoen? Dette vil slette alle profiler, bøker og data permanent, og du vil bli logget ut.')) {
+      return;
+    }
+    
+    try {
+      // Delete all profiles and data from the database
+      await deleteAllProfiles(authUser.uid, profiles);
+      // Delete the Firebase Authentication entry (this also signs out the user)
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await currentUser.delete();
+      }
+      setError('');
+    } catch (err) {
+      // If deletion fails due to requiring recent login, show error message
+      if (err.code === 'auth/requires-recent-login') {
+        setError('Du må logge inn på nytt for å slette kontoen. Vennligst logg ut og inn igjen, og prøv på nytt.');
+      } else {
+        setError('Kunne ikke slette brukerkontoen: ' + err.message);
+      }
+    }
   };
 
   // Book handlers
@@ -641,6 +701,9 @@ const BookContestApp = () => {
         newProfileName={newProfileName}
         setNewProfileName={setNewProfileName}
         createNewProfile={createNewProfile}
+        handleDeleteProfile={handleDeleteProfile}
+        handleSetMainProfile={handleSetMainProfile}
+        handleDeleteUser={handleDeleteUser}
         error={error}
         setError={setError}
       />
