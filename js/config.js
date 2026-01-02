@@ -292,5 +292,36 @@ window.Icons = {
     React.createElement("line", { key: "7", x1: "21", y1: "12", x2: "23", y2: "12" }),
     React.createElement("line", { key: "8", x1: "4.22", y1: "19.78", x2: "5.64", y2: "18.36" }),
     React.createElement("line", { key: "9", x1: "18.36", y1: "5.64", x2: "19.78", y2: "4.22" })
+  ]),
+
+  MessageSquare: (props) => React.createElement("svg", {
+    ...props,
+    xmlns: "http://www.w3.org/2000/svg",
+    width: "24",
+    height: "24",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, [
+    React.createElement("path", { key: "1", d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" })
+  ]),
+
+  Send: (props) => React.createElement("svg", {
+    ...props,
+    xmlns: "http://www.w3.org/2000/svg",
+    width: "24",
+    height: "24",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, [
+    React.createElement("line", { key: "1", x1: "22", y1: "2", x2: "11", y2: "13" }),
+    React.createElement("polygon", { key: "2", points: "22 2 15 22 11 13 2 9 22 2" })
   ])
 };

@@ -18,8 +18,8 @@ window.FriendsManager = ({
   darkMode
 }) => {
   const { useState, useEffect } = React;
-  const { Flame, Plus, Trash2 } = window.Icons;
-  const { loadProfileBooksOnce, searchUsersByName } = window;
+  const { Flame, Plus, Trash2, MessageSquare } = window.Icons;
+  const { loadProfileBooksOnce, searchUsersByName, ChatManager, loadConversations, getConversationId } = window;
   
   // Tab state: 'friends', 'requests', 'find'
   const [activeSubTab, setActiveSubTab] = useState('friends');
@@ -33,6 +33,10 @@ window.FriendsManager = ({
   
   // Book counts for friends
   const [friendBookCounts, setFriendBookCounts] = useState({});
+  
+  // Chat state
+  const [activeChatFriendId, setActiveChatFriendId] = useState(null);
+  const [conversations, setConversations] = useState({});
   
   // Get friends list
   const friends = friendships?.friends || {};
@@ -89,6 +93,24 @@ window.FriendsManager = ({
     }
   }, [friendIds.join(',')]);
   
+  // Load conversations for unread counts
+  useEffect(() => {
+    if (!currentProfile) return;
+    
+    const unsubscribe = loadConversations(currentProfile.id, (data) => {
+      setConversations(data);
+    });
+    
+    return () => unsubscribe();
+  }, [currentProfile?.id]);
+  
+  // Get unread count for a friend
+  const getUnreadCount = (friendId) => {
+    const conversationId = getConversationId(currentProfile.id, friendId);
+    const conversation = conversations[conversationId];
+    return conversation?.unreadCount?.[currentProfile.id] || 0;
+  };
+  
   // Toggle friend's books view
   const toggleFriendBooks = async (friendId) => {
     if (expandedFriendBooks[friendId]) {
@@ -109,6 +131,16 @@ window.FriendsManager = ({
   // Hide all expanded books
   const hideAllBooks = () => {
     setExpandedFriendBooks({});
+  };
+  
+  // Open chat with friend
+  const openChat = (friendId) => {
+    setActiveChatFriendId(friendId);
+  };
+  
+  // Close chat
+  const closeChat = () => {
+    setActiveChatFriendId(null);
   };
 
   return (
@@ -184,6 +216,7 @@ window.FriendsManager = ({
                 const friendBooks = expandedFriendBooks[friendId];
                 const isExpanded = !!friendBooks;
                 const bookCount = friendBookCounts[friendId] || 0;
+                const unreadCount = getUnreadCount(friendId);
                 
                 return (
                   <div key={friendId} className={`rounded-lg p-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -213,6 +246,23 @@ window.FriendsManager = ({
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => openChat(friendId)}
+                          className={`px-3 py-1 text-sm rounded transition flex items-center gap-1 relative ${
+                            darkMode 
+                              ? 'bg-green-900 text-green-300 hover:bg-green-800' 
+                              : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
+                          title="Chat"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          <span className="hidden sm:inline">Chat</span>
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                          )}
+                        </button>
                         <button
                           onClick={() => toggleFriendBooks(friendId)}
                           className={`px-3 py-1 text-sm rounded transition ${
@@ -450,6 +500,17 @@ window.FriendsManager = ({
         }`}>
           {error}
         </div>
+      )}
+      
+      {/* Chat Modal */}
+      {activeChatFriendId && (
+        <ChatManager
+          currentProfile={currentProfile}
+          friendId={activeChatFriendId}
+          friendData={getFriendData(activeChatFriendId)}
+          onClose={closeChat}
+          darkMode={darkMode}
+        />
       )}
     </div>
   );

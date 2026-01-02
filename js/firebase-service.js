@@ -449,3 +449,166 @@ window.deleteAllProfiles = async (uid, profiles) => {
   
   await database.ref().update(updates);
 };
+
+// ============ Chat System Functions ============
+
+/**
+ * Generate a conversation ID from two profile IDs (deterministic)
+ * Always returns the same ID regardless of order
+ * @param {string} profileId1 - First profile ID
+ * @param {string} profileId2 - Second profile ID
+ * @returns {string} Conversation ID
+ */
+window.getConversationId = (profileId1, profileId2) => {
+  return [profileId1, profileId2].sort().join('_');
+};
+
+/**
+ * Send a message in a conversation
+ * @param {string} conversationId - Conversation ID
+ * @param {string} senderId - Profile ID of sender
+ * @param {string} recipientId - Profile ID of recipient
+ * @param {string} messageText - Message content
+ */
+window.sendMessage = async (conversationId, senderId, recipientId, messageText) => {
+  const { database } = window;
+  const messageRef = database.ref(`chats/${conversationId}/messages`).push();
+  const timestamp = new Date().toISOString();
+  
+  const message = {
+    id: messageRef.key,
+    senderId: senderId,
+    recipientId: recipientId,
+    text: messageText,
+    timestamp: timestamp,
+    read: false
+  };
+  
+  const updates = {};
+  // Add message to conversation
+  updates[`chats/${conversationId}/messages/${messageRef.key}`] = message;
+  // Update conversation metadata
+  updates[`chats/${conversationId}/lastMessage`] = {
+    text: messageText,
+    timestamp: timestamp,
+    senderId: senderId
+  };
+  updates[`chats/${conversationId}/participants/${senderId}`] = true;
+  updates[`chats/${conversationId}/participants/${recipientId}`] = true;
+  // Update unread count for recipient
+  updates[`chats/${conversationId}/unreadCount/${recipientId}`] = firebase.database.ServerValue.increment(1);
+  
+  await database.ref().update(updates);
+};
+
+/**
+ * Load messages for a conversation and set up real-time listener
+ * 
+ * IMPORTANT: For optimal performance, add Firebase index:
+ * "chats/$conversationId/messages": { ".indexOn": ["timestamp"] }
+ * 
+ * @param {string} conversationId - Conversation ID
+ * @param {Function} callback - Callback to receive messages data
+ * @returns {Function} Unsubscribe function to clean up the listener
+ */
+window.loadMessages = (conversationId, callback) => {
+  const { database } = window;
+  const messagesRef = database.ref(`chats/${conversationId}/messages`).orderByChild('timestamp');
+  messagesRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    callback(data);
+  });
+  // Return unsubscribe function
+  return () => messagesRef.off('value');
+};
+
+/**
+ * Mark all messages in a conversation as read for a specific user
+ * Note: Uses orderByChild query to efficiently filter messages by recipient.
+ * Only updates unread messages to minimize write operations.
+ * 
+ * IMPORTANT: This query requires a Firebase index for optimal performance.
+ * Add to Firebase Realtime Database Rules:
+ * {
+ *   "rules": {
+ *     "chats": {
+ *       "$conversationId": {
+ *         "messages": {
+ *           ".indexOn": ["recipientId", "timestamp"]
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ * 
+ * @param {string} conversationId - Conversation ID
+ * @param {string} userId - Profile ID of user marking messages as read
+ */
+window.markMessagesAsRead = async (conversationId, userId) => {
+  const { database } = window;
+  
+  // Efficiently query only messages for this user using Firebase index
+  const messagesSnapshot = await database.ref(`chats/${conversationId}/messages`)
+    .orderByChild('recipientId')
+    .equalTo(userId)
+    .once('value');
+  
+  if (!messagesSnapshot.exists()) {
+    // Just reset the count if no messages found
+    await database.ref(`chats/${conversationId}/unreadCount/${userId}`).set(0);
+    return;
+  }
+  
+  const updates = {};
+  const messages = messagesSnapshot.val();
+  
+  // Only mark unread messages (skip already read ones)
+  Object.entries(messages).forEach(([messageId, message]) => {
+    if (!message.read) {
+      updates[`chats/${conversationId}/messages/${messageId}/read`] = true;
+    }
+  });
+  
+  // Always reset unread count
+  updates[`chats/${conversationId}/unreadCount/${userId}`] = 0;
+  
+  if (Object.keys(updates).length > 0) {
+    await database.ref().update(updates);
+  }
+};
+
+/**
+ * Load all conversations for a user and set up real-time listener
+ * 
+ * Note: Current implementation loads all chats and filters client-side.
+ * For better scalability with many users, consider adding a user-conversations
+ * index structure: userConversations/${userId}/${conversationId}
+ * 
+ * This simple approach works well for small-to-medium deployments.
+ * The friend-only restriction naturally limits conversation count per user.
+ * 
+ * @param {string} userId - Profile ID
+ * @param {Function} callback - Callback to receive conversations data
+ * @returns {Function} Unsubscribe function to clean up the listener
+ */
+window.loadConversations = (userId, callback) => {
+  const { database } = window;
+  const chatsRef = database.ref('chats');
+  
+  chatsRef.on('value', (snapshot) => {
+    const allChats = snapshot.val() || {};
+    // Filter conversations where user is a participant
+    const userConversations = {};
+    
+    Object.entries(allChats).forEach(([conversationId, conversation]) => {
+      if (conversation.participants && conversation.participants[userId]) {
+        userConversations[conversationId] = conversation;
+      }
+    });
+    
+    callback(userConversations);
+  });
+  
+  // Return unsubscribe function
+  return () => chatsRef.off('value');
+};
