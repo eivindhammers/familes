@@ -225,9 +225,12 @@ const BookContestApp = () => {
       return;
     }
 
-    const profileId = `${authUser.uid}_${Date.now()}`;
     // If there are no existing profiles, this should be the main account
     const shouldBeMainAccount = profiles.length === 0;
+    // Main account gets "_main" suffix, others get timestamp
+    const profileId = shouldBeMainAccount 
+      ? `${authUser.uid}_main` 
+      : `${authUser.uid}_${Date.now()}`;
     const newProfile = {
       id: profileId,
       name: newProfileName.trim(),
@@ -289,11 +292,21 @@ const BookContestApp = () => {
     }
     
     try {
+      // Delete all profiles and data from the database
       await deleteAllProfiles(authUser.uid, profiles);
-      await auth.signOut();
+      // Delete the Firebase Authentication entry (this also signs out the user)
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        await currentUser.delete();
+      }
       setError('');
     } catch (err) {
-      setError('Kunne ikke slette brukerkontoen: ' + err.message);
+      // If deletion fails due to requiring recent login, show error message
+      if (err.code === 'auth/requires-recent-login') {
+        setError('Du må logge inn på nytt for å slette kontoen. Vennligst logg ut og inn igjen, og prøv på nytt.');
+      } else {
+        setError('Kunne ikke slette brukerkontoen: ' + err.message);
+      }
     }
   };
 
