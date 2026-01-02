@@ -503,6 +503,10 @@ window.sendMessage = async (conversationId, senderId, recipientId, messageText) 
 
 /**
  * Load messages for a conversation and set up real-time listener
+ * 
+ * IMPORTANT: For optimal performance, add Firebase index:
+ * "chats/$conversationId/messages": { ".indexOn": ["timestamp"] }
+ * 
  * @param {string} conversationId - Conversation ID
  * @param {Function} callback - Callback to receive messages data
  * @returns {Function} Unsubscribe function to clean up the listener
@@ -522,6 +526,21 @@ window.loadMessages = (conversationId, callback) => {
  * Mark all messages in a conversation as read for a specific user
  * Note: Uses orderByChild query to efficiently filter messages by recipient.
  * Only updates unread messages to minimize write operations.
+ * 
+ * IMPORTANT: This query requires a Firebase index for optimal performance.
+ * Add to Firebase Realtime Database Rules:
+ * {
+ *   "rules": {
+ *     "chats": {
+ *       "$conversationId": {
+ *         "messages": {
+ *           ".indexOn": ["recipientId", "timestamp"]
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ * 
  * @param {string} conversationId - Conversation ID
  * @param {string} userId - Profile ID of user marking messages as read
  */
@@ -560,6 +579,14 @@ window.markMessagesAsRead = async (conversationId, userId) => {
 
 /**
  * Load all conversations for a user and set up real-time listener
+ * 
+ * Note: Current implementation loads all chats and filters client-side.
+ * For better scalability with many users, consider adding a user-conversations
+ * index structure: userConversations/${userId}/${conversationId}
+ * 
+ * This simple approach works well for small-to-medium deployments.
+ * The friend-only restriction naturally limits conversation count per user.
+ * 
  * @param {string} userId - Profile ID
  * @param {Function} callback - Callback to receive conversations data
  * @returns {Function} Unsubscribe function to clean up the listener
