@@ -116,6 +116,17 @@ const BookContestApp = () => {
   const [friendError, setFriendError] = useState('');
   const [friendSuccess, setFriendSuccess] = useState('');
 
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    }
+    // Check localStorage for user preference
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? savedMode === 'true' : false;
+  });
+
   // Google Books search with debounce
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
@@ -131,6 +142,23 @@ const BookContestApp = () => {
   
     return () => clearTimeout(timeoutId);
   }, [newBook.title, showSuggestions]);
+
+  // Dark mode effect
+  useEffect(() => {
+    // Save preference
+    localStorage.setItem('darkMode', darkMode);
+    // Apply to document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+  
+  // Toggle dark mode handler
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev);
+  };
 
   // Handle book selection from Google Books
   const selectBook = (book) => {
@@ -717,7 +745,7 @@ const BookContestApp = () => {
 
   // Render main app
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
       {currentLevelUp && (
         <LevelUpOverlay 
           level={currentLevelUp}
@@ -739,6 +767,8 @@ const BookContestApp = () => {
           onDeclineRequest={handleDeclineFriendRequest}
           onDismissAcceptedNotification={handleDismissAcceptedNotification}
           friendSuccess={friendSuccess}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
         />
 
         <div className="flex gap-1 sm:gap-2 mb-6 w-full sm:w-auto">
@@ -746,8 +776,12 @@ const BookContestApp = () => {
             onClick={() => setActiveTab('myBooks')}
             className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'myBooks'
-                ? 'bg-white shadow-md text-indigo-600'
-                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                ? darkMode 
+                  ? 'bg-gray-800 shadow-md text-indigo-400' 
+                  : 'bg-white shadow-md text-indigo-600'
+                : darkMode 
+                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80' 
+                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
             <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -758,8 +792,12 @@ const BookContestApp = () => {
             onClick={() => setActiveTab('leaderboard')}
             className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'leaderboard'
-                ? 'bg-white shadow-md text-indigo-600'
-                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                ? darkMode 
+                  ? 'bg-gray-800 shadow-md text-indigo-400' 
+                  : 'bg-white shadow-md text-indigo-600'
+                : darkMode 
+                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80' 
+                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -769,8 +807,12 @@ const BookContestApp = () => {
             onClick={() => setActiveTab('friends')}
             className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'friends'
-                ? 'bg-white shadow-md text-indigo-600'
-                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                ? darkMode 
+                  ? 'bg-gray-800 shadow-md text-indigo-400' 
+                  : 'bg-white shadow-md text-indigo-600'
+                : darkMode 
+                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80' 
+                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
             <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -780,8 +822,12 @@ const BookContestApp = () => {
             onClick={() => setActiveTab('admin')}
             className={`flex-1 sm:flex-initial flex items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-3 rounded-lg transition text-sm sm:text-base ${
               activeTab === 'admin'
-                ? 'bg-white shadow-md text-indigo-600'
-                : 'bg-white/50 text-gray-600 hover:bg-white/80'
+                ? darkMode 
+                  ? 'bg-gray-800 shadow-md text-indigo-400' 
+                  : 'bg-white shadow-md text-indigo-600'
+                : darkMode 
+                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80' 
+                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
             }`}
           >
             <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -803,6 +849,7 @@ const BookContestApp = () => {
               showSuggestions={showSuggestions}
               setShowSuggestions={setShowSuggestions}
               selectBook={selectBook}
+              darkMode={darkMode}
             />
 
             <BookList
@@ -813,6 +860,7 @@ const BookContestApp = () => {
               setPageUpdate={setPageUpdate}
               updatePages={updatePages}
               deleteBook={deleteBook}
+              darkMode={darkMode}
             />
           </div>
         ) : activeTab === 'leaderboard' ? (
@@ -823,6 +871,7 @@ const BookContestApp = () => {
             currentLeagueId={currentLeagueId}
             setCurrentLeagueId={setCurrentLeagueId}
             leagueLeaderboard={leagueLeaderboard}
+            darkMode={darkMode}
           />
         ) : activeTab === 'friends' ? (
           <FriendsManager
@@ -837,6 +886,7 @@ const BookContestApp = () => {
             onRemoveFriend={handleRemoveFriend}
             error={friendError}
             success={friendSuccess}
+            darkMode={darkMode}
           />
         ) : (
           <LeagueManager
@@ -850,6 +900,7 @@ const BookContestApp = () => {
             setLeagueAction={setLeagueAction}
             handleLeagueAction={handleLeagueAction}
             error={error}
+            darkMode={darkMode}
           />
         )}
         
