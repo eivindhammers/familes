@@ -40,6 +40,12 @@ const {
   removeFriend,
   loadFriendships,
   dismissAcceptedNotification,
+  // Chat system
+  getConversationId,
+  sendMessage,
+  loadMessages,
+  markMessagesAsRead,
+  loadConversations,
   // Google Books API
   searchGoogleBooks,
   // Hooks
@@ -54,7 +60,8 @@ const {
   LeagueManager,
   FriendsManager,
   LevelUpOverlay,
-  Footer
+  Footer,
+  ChatManager
 } = window;
 
 const { DAILY_PAGES_GOAL } = APP_CONSTANTS;
