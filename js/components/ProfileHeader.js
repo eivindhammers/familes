@@ -260,7 +260,7 @@ window.ProfileHeader = ({
             : 'bg-gradient-to-br from-orange-50 to-red-50'
         }`}>
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Flame className={`w-6 h-6 ${currentProfile.currentStreak > 0 ? 'text-orange-500' : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+            <Flame className={`w-6 h-6 ${currentProfile.currentStreak > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
             <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.currentStreak || 0}</span>
           </div>
           <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Daglig streak</div>
