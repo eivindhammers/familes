@@ -476,6 +476,40 @@ const BookContestApp = () => {
     setError('');
   };
 
+  // Helper: Update profile with new league and sync to database
+  const updateProfileWithLeague = async (leagueId) => {
+    const updatedProfile = {
+      ...currentProfile,
+      leagues: [...(currentProfile.leagues || []), leagueId]
+    };
+    setCurrentProfile(updatedProfile);
+    await saveProfile(authUser.uid, currentProfile.id, updatedProfile);
+    await saveUserToGlobalList(currentProfile.id, updatedProfile);
+  };
+
+  // Helper: Check and sync profile leagues to global users list if out of sync
+  const syncProfileLeaguesIfNeeded = async (profile) => {
+    try {
+      const { database } = window;
+      const snapshot = await database.ref(`users/${profile.id}`).once('value');
+      const globalUserData = snapshot.val();
+      
+      const profileLeagues = profile.leagues || [];
+      const globalLeagues = globalUserData?.leagues || [];
+      
+      const leaguesMismatch = 
+        profileLeagues.length !== globalLeagues.length ||
+        !profileLeagues.every(league => globalLeagues.includes(league));
+      
+      if (leaguesMismatch) {
+        console.log('Syncing profile leagues to global users list...');
+        await saveUserToGlobalList(profile.id, profile);
+      }
+    } catch (error) {
+      console.error('Error syncing profile to global list:', error);
+    }
+  };
+
   // League handlers
   const handleLeagueAction = async (action) => {
     setError('');
@@ -503,16 +537,7 @@ const BookContestApp = () => {
         const leagueId = await createLeague(newLeagueName.trim(), code, currentProfile.id);
         await addLeagueToProfile(authUser.uid, currentProfile.id, leagueId);
         await updateLeagueLeaderboard(leagueId, currentProfile.id, currentProfile);
-        
-        // Update local state
-        const updatedProfile = {
-          ...currentProfile,
-          leagues: [...(currentProfile.leagues || []), leagueId]
-        };
-        setCurrentProfile(updatedProfile);
-        // Persist full profile and sync to global users list
-        await saveProfile(authUser.uid, currentProfile.id, updatedProfile);
-        await saveUserToGlobalList(currentProfile.id, updatedProfile);
+        await updateProfileWithLeague(leagueId);
         setNewLeagueName('');
         setError('');
       } catch (err) {
@@ -541,16 +566,7 @@ const BookContestApp = () => {
         await addMemberToLeague(league.id, currentProfile.id);
         await addLeagueToProfile(authUser.uid, currentProfile.id, league.id);
         await updateLeagueLeaderboard(league.id, currentProfile.id, currentProfile);
-        
-        // Update local state
-        const updatedProfile = {
-          ...currentProfile,
-          leagues: [...(currentProfile.leagues || []), league.id]
-        };
-        setCurrentProfile(updatedProfile);
-        // Persist full profile and sync to global users list
-        await saveProfile(authUser.uid, currentProfile.id, updatedProfile);
-        await saveUserToGlobalList(currentProfile.id, updatedProfile);
+        await updateProfileWithLeague(league.id);
         setJoinLeagueCode('');
         setError('');
       } catch (err) {
@@ -659,34 +675,8 @@ const BookContestApp = () => {
   // Load profile data
   useEffect(() => {
     if (currentProfile) {
-      // One-time sync to fix existing users with missing league data in global users list
-      const syncProfileToGlobalList = async () => {
-        try {
-          // Load current global user data
-          const { database } = window;
-          const snapshot = await database.ref(`users/${currentProfile.id}`).once('value');
-          const globalUserData = snapshot.val();
-          
-          // Check if leagues are out of sync
-          const profileLeagues = currentProfile.leagues || [];
-          const globalLeagues = globalUserData?.leagues || [];
-          
-          // Compare leagues arrays
-          const leaguesMismatch = 
-            profileLeagues.length !== globalLeagues.length ||
-            !profileLeagues.every(league => globalLeagues.includes(league));
-          
-          // If out of sync, update global users list
-          if (leaguesMismatch) {
-            console.log('Syncing profile leagues to global users list...');
-            await saveUserToGlobalList(currentProfile.id, currentProfile);
-          }
-        } catch (error) {
-          console.error('Error syncing profile to global list:', error);
-        }
-      };
-      
-      syncProfileToGlobalList();
+      // One-time sync to fix existing users with missing league data
+      syncProfileLeaguesIfNeeded(currentProfile);
       
       loadProfileBooks(currentProfile.id, (data) => {
         setBooks(data ? Object.values(data) : []);
