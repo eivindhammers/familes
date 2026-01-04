@@ -14,10 +14,11 @@ window.BookList = ({
   darkMode
 }) => {
   const { BookOpen, TrendingUp, Trash2 } = window.Icons;
+  const { getCardClassName, getTextClassName, getInputClassName } = window;
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Min leseliste</h2>
+    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
+      <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>Min leseliste</h2>
       {books.length > 0 && (
         <div className={`rounded-lg p-4 mb-4 flex items-center justify-between ${
           darkMode 
@@ -31,7 +32,7 @@ window.BookList = ({
         </div>
       )}
       {books.length === 0 ? (
-        <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ingen bøker ennå. Legg til din første bok ovenfor!</p>
+        <p className={`text-center py-8 ${getTextClassName(darkMode, 'muted')}`}>Ingen bøker ennå. Legg til din første bok ovenfor!</p>
       ) : (
         <div className="space-y-4">
           {books.map(book => (
@@ -61,14 +62,14 @@ window.BookList = ({
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className={`font-semibold text-lg leading-tight truncate ${darkMode ? 'text-white' : 'text-gray-800'}`}>{book.title}</h3>
+                    <h3 className={`font-semibold text-lg leading-tight truncate ${getTextClassName(darkMode, 'heading')}`}>{book.title}</h3>
                     <div className="flex items-center gap-3">
-                      <p className={`text-sm truncate ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>av {book.author}</p>
+                      <p className={`text-sm truncate ${getTextClassName(darkMode, 'body')}`}>av {book.author}</p>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
                     <div className={`text-lg font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{book.pagesRead}</div>
-                    <div className={`text-sm whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className={`text-sm whitespace-nowrap ${getTextClassName(darkMode, 'muted')}`}>
                       {book.totalPages > 0 ? `/ ${book.totalPages} sider` : 'sider'}
                     </div>
                   </div>
@@ -90,11 +91,7 @@ window.BookList = ({
                       placeholder="Totalt lest..."
                       value={pageUpdate}
                       onChange={(e) => setPageUpdate(e.target.value)}
-                      className={`w-20 px-2 py-1 border rounded text-sm ${
-                        darkMode 
-                          ? 'bg-gray-600 border-gray-500 text-white' 
-                          : 'border-gray-300'
-                      }`}
+                      className={`w-20 px-2 py-1 border rounded text-sm ${getInputClassName(darkMode)}`}
                       autoFocus
                       onFocus={(e) => e.target.select()}
                     />

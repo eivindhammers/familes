@@ -109,19 +109,18 @@ window.getXPProgress = (totalXP) => {
  * @returns {Array} Sorted array of users with rank property
  */
 window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
-  // Helper to get XP with fallback
-  const getXP = (user) => user.totalXP ?? user.totalPages ?? 0;
+  const { getUserXP } = window;
   
   // If league filtering is requested, use league leaderboard data
   if (leagueId && leagueLeaderboard) {
     return Object.values(leagueLeaderboard)
-      .sort((a, b) => getXP(b) - getXP(a))
+      .sort((a, b) => getUserXP(b) - getUserXP(a))
       .map((user, index) => ({ ...user, rank: index + 1 }));
   }
   
   // Otherwise return global leaderboard
   return Object.values(users)
-    .sort((a, b) => getXP(b) - getXP(a))
+    .sort((a, b) => getUserXP(b) - getUserXP(a))
     .map((user, index) => ({ ...user, rank: index + 1 }));
 };
 
@@ -138,4 +137,70 @@ window.generateLeagueCode = () => {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
+};
+
+/**
+ * Get user XP with fallback to totalPages for backward compatibility
+ * @param {Object} user - User or profile object
+ * @returns {number} XP value
+ */
+window.getUserXP = (user) => {
+  return user?.totalXP ?? user?.totalPages ?? 0;
+};
+
+/**
+ * Get dark mode aware input class names for form inputs
+ * @param {boolean} darkMode - Whether dark mode is enabled
+ * @returns {string} Tailwind class names
+ */
+window.getInputClassName = (darkMode) => {
+  return darkMode 
+    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+    : 'border-gray-300';
+};
+
+/**
+ * Get dark mode aware error message styling
+ * @param {boolean} darkMode - Whether dark mode is enabled
+ * @returns {string} Tailwind class names
+ */
+window.getErrorClassName = (darkMode) => {
+  return darkMode 
+    ? 'bg-red-900 bg-opacity-30 border-red-700 text-red-300' 
+    : 'bg-red-50 border-red-200 text-red-700';
+};
+
+/**
+ * Get dark mode aware success message styling
+ * @param {boolean} darkMode - Whether dark mode is enabled
+ * @returns {string} Tailwind class names
+ */
+window.getSuccessClassName = (darkMode) => {
+  return darkMode 
+    ? 'bg-green-900 bg-opacity-30 border-green-700 text-green-300' 
+    : 'bg-green-50 border-green-200 text-green-700';
+};
+
+/**
+ * Get dark mode aware card/panel styling
+ * @param {boolean} darkMode - Whether dark mode is enabled
+ * @returns {string} Tailwind class names
+ */
+window.getCardClassName = (darkMode) => {
+  return darkMode ? 'bg-gray-800' : 'bg-white';
+};
+
+/**
+ * Get dark mode aware text styling
+ * @param {boolean} darkMode - Whether dark mode is enabled
+ * @param {string} type - Type of text: 'heading', 'body', 'muted'
+ * @returns {string} Tailwind class names
+ */
+window.getTextClassName = (darkMode, type = 'body') => {
+  const styles = {
+    heading: darkMode ? 'text-white' : 'text-gray-800',
+    body: darkMode ? 'text-gray-300' : 'text-gray-600',
+    muted: darkMode ? 'text-gray-400' : 'text-gray-500'
+  };
+  return styles[type] || styles.body;
 };

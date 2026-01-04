@@ -17,6 +17,7 @@ window.LeagueManager = ({
   darkMode
 }) => {
   const { Plus } = window.Icons;
+  const { getInputClassName, getErrorClassName, getCardClassName, getTextClassName } = window;
   
   // Get leagues that current profile is a member of
   const userLeagues = leagues && currentProfile.leagues 
@@ -24,13 +25,13 @@ window.LeagueManager = ({
     : [];
 
   return (
-    <div className={`rounded-lg shadow-md p-6 space-y-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Ligaadministrasjon</h2>
+    <div className={`rounded-lg shadow-md p-6 space-y-6 ${getCardClassName(darkMode)}`}>
+      <h2 className={`text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>Ligaadministrasjon</h2>
       
       {/* User's Leagues */}
       {userLeagues.length > 0 && (
         <div>
-          <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Dine ligaer</h3>
+          <h3 className={`text-lg font-semibold mb-3 ${getTextClassName(darkMode, 'body')}`}>Dine ligaer</h3>
           <div className="space-y-2">
             {userLeagues.map(league => (
               <div 
@@ -38,10 +39,10 @@ window.LeagueManager = ({
                 className={`flex items-center justify-between p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}
               >
                 <div>
-                  <div className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{league.name}</div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Kode: {league.code}</div>
+                  <div className={`font-semibold ${getTextClassName(darkMode, 'heading')}`}>{league.name}</div>
+                  <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>Kode: {league.code}</div>
                 </div>
-                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>
                   {Object.keys(league.members || {}).length} medlemmer
                 </div>
               </div>
@@ -52,7 +53,7 @@ window.LeagueManager = ({
 
       {/* Toggle between Join and Create */}
       <div>
-        <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Legg til liga</h3>
+        <h3 className={`text-lg font-semibold mb-3 ${getTextClassName(darkMode, 'body')}`}>Legg til liga</h3>
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setLeagueAction('join')}
@@ -89,11 +90,7 @@ window.LeagueManager = ({
               onChange={(e) => setJoinLeagueCode(e.target.value.toUpperCase())}
               placeholder="Skriv inn ligakode (6 tegn)"
               maxLength={6}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${getInputClassName(darkMode)}`}
             />
             <button
               onClick={() => handleLeagueAction('join')}
@@ -113,11 +110,7 @@ window.LeagueManager = ({
               value={newLeagueName}
               onChange={(e) => setNewLeagueName(e.target.value)}
               placeholder="Liganavn"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${getInputClassName(darkMode)}`}
             />
             <button
               onClick={() => handleLeagueAction('create')}
@@ -132,11 +125,7 @@ window.LeagueManager = ({
 
       {/* Error Display */}
       {error && (
-        <div className={`border px-4 py-3 rounded-lg ${
-          darkMode 
-            ? 'bg-red-900 bg-opacity-30 border-red-700 text-red-300' 
-            : 'bg-red-50 border-red-200 text-red-700'
-        }`}>
+        <div className={`border px-4 py-3 rounded-lg ${getErrorClassName(darkMode)}`}>
           {error}
         </div>
       )}
