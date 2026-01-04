@@ -510,6 +510,8 @@ const BookContestApp = () => {
           leagues: [...(currentProfile.leagues || []), leagueId]
         };
         setCurrentProfile(updatedProfile);
+        // Sync to global users list so friends can see the league membership
+        await saveUserToGlobalList(currentProfile.id, updatedProfile);
         setNewLeagueName('');
         setError('');
       } catch (err) {
@@ -545,6 +547,8 @@ const BookContestApp = () => {
           leagues: [...(currentProfile.leagues || []), league.id]
         };
         setCurrentProfile(updatedProfile);
+        // Sync to global users list so friends can see the league membership
+        await saveUserToGlobalList(currentProfile.id, updatedProfile);
         setJoinLeagueCode('');
         setError('');
       } catch (err) {
