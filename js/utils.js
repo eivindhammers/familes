@@ -156,7 +156,7 @@ window.getUserXP = (user) => {
 window.getInputClassName = (darkMode) => {
   return darkMode 
     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-    : 'border-gray-300';
+    : 'border-gray-300 text-gray-900';
 };
 
 /**
