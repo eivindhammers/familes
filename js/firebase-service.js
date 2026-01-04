@@ -212,12 +212,12 @@ window.addLeagueToProfile = async (uid, profileId, leagueId) => {
  * @param {Object} profile - Profile data
  */
 window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
-  const { database } = window;
+  const { database, getUserXP } = window;
   const leaderboardData = {
     id: profileId,
     name: profile.name,
     totalPages: profile.totalPages,
-    totalXP: profile.totalXP ?? profile.totalPages ?? 0,
+    totalXP: getUserXP(profile),
     level: profile.level,
     currentStreak: profile.currentStreak,
     longestStreak: profile.longestStreak

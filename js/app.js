@@ -12,6 +12,7 @@ const {
   generateLeagueCode,
   getLevelFromXP,
   getXPProgress,
+  getUserXP,
   // Firebase services
   saveProfile,
   saveUserToGlobalList,
@@ -401,7 +402,7 @@ const BookContestApp = () => {
     // totalXP tracks all XP (from pages + future sources)
     // For pages: XP added = pages added (1 page = 1 XP)
     const xpFromPages = difference > 0 ? difference : 0;
-    const currentTotalXP = currentProfile.totalXP ?? currentProfile.totalPages ?? 0; // Fallback for existing profiles
+    const currentTotalXP = getUserXP(currentProfile); // Fallback for existing profiles
     const newTotalXP = currentTotalXP + xpFromPages;
     
     const newLevel = getLevelFromXP(newTotalXP);
@@ -764,7 +765,7 @@ const BookContestApp = () => {
   }
 
   // Use totalXP for leveling calculations (fallback to totalPages for existing profiles)
-  const totalXP = currentProfile.totalXP ?? currentProfile.totalPages ?? 0;
+  const totalXP = getUserXP(currentProfile);
   const progress = calculateProgress(totalXP);
   const xpProgress = getXPProgress(totalXP);
 
@@ -868,9 +869,7 @@ const BookContestApp = () => {
               addBook={addBook}
               error={error}
               suggestions={suggestions}
-              setSuggestions={setSuggestions}
               isSearching={isSearching}
-              setIsSearching={setIsSearching}
               showSuggestions={showSuggestions}
               setShowSuggestions={setShowSuggestions}
               selectBook={selectBook}

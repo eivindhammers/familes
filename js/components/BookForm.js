@@ -9,25 +9,20 @@ window.BookForm = ({
   addBook,
   error,
   suggestions,
-  setSuggestions,
   isSearching,
-  setIsSearching,
   showSuggestions,
   setShowSuggestions,
   selectBook,
   darkMode
 }) => {
   const { Plus } = window.Icons;
+  const { getInputClassName, getErrorClassName, getCardClassName, getTextClassName } = window;
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Legg til ny bok</h2>
+    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
+      <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>Legg til ny bok</h2>
       {error && (
-        <div className={`border px-4 py-3 rounded mb-4 ${
-          darkMode 
-            ? 'bg-red-900 bg-opacity-30 border-red-700 text-red-300' 
-            : 'bg-red-50 border-red-200 text-red-700'
-        }`}>
+        <div className={`border px-4 py-3 rounded mb-4 ${getErrorClassName(darkMode)}`}>
           {error}
         </div>
       )}
@@ -45,11 +40,7 @@ window.BookForm = ({
             onBlur={() => {
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-              darkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'border-gray-300'
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
           />
           
           {showSuggestions && (suggestions.length > 0 || isSearching) && newBook.title && (
@@ -58,7 +49,7 @@ window.BookForm = ({
                 ? 'bg-gray-700 border-gray-600' 
                 : 'bg-white border-gray-200'
             }`}>
-              {isSearching && <div className={`p-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Søker...</div>}
+              {isSearching && <div className={`p-2 text-sm ${getTextClassName(darkMode, 'muted')}`}>Søker...</div>}
               {suggestions.map((book) => (
                 <div
                   key={book.id}
@@ -76,8 +67,8 @@ window.BookForm = ({
                     <img src={book.thumbnail} alt="" className="w-8 h-12 object-cover rounded" />
                   )}
                   <div>
-                    <div className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>{book.title}</div>
-                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{book.author} • {book.pages} sider</div>
+                    <div className={`font-semibold text-sm ${getTextClassName(darkMode, 'heading')}`}>{book.title}</div>
+                    <div className={`text-xs ${getTextClassName(darkMode, 'muted')}`}>{book.author} • {book.pages} sider</div>
                   </div>
                 </div>
               ))}
@@ -90,22 +81,14 @@ window.BookForm = ({
           placeholder="Forfatter"
           value={newBook.author}
           onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-              : 'border-gray-300'
-          }`}
+          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
         />
         <input
           type="number"
           placeholder="Antall sider"
           value={newBook.pages}
           onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
-          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-              : 'border-gray-300'
-          }`}
+          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
         />
       </div>
       <button

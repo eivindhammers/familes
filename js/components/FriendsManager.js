@@ -19,7 +19,7 @@ window.FriendsManager = ({
 }) => {
   const { useState, useEffect } = React;
   const { Flame, Plus, Trash2 } = window.Icons;
-  const { loadProfileBooksOnce, searchUsersByName } = window;
+  const { loadProfileBooksOnce, searchUsersByName, getUserXP, getInputClassName, getErrorClassName, getSuccessClassName, getCardClassName, getTextClassName, UserAvatar } = window;
   
   // Tab state: 'friends', 'requests', 'find'
   const [activeSubTab, setActiveSubTab] = useState('friends');
@@ -112,8 +112,8 @@ window.FriendsManager = ({
   };
 
   return (
-    <div className={`rounded-lg shadow-md p-6 space-y-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Venner</h2>
+    <div className={`rounded-lg shadow-md p-6 space-y-6 ${getCardClassName(darkMode)}`}>
+      <h2 className={`text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>Venner</h2>
       
       {/* Sub-tabs */}
       <div className="flex gap-2 mb-4">
@@ -189,11 +189,9 @@ window.FriendsManager = ({
                   <div key={friendId} className={`rounded-lg p-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {friend.name?.charAt(0).toUpperCase() || '?'}
-                        </div>
+                        <UserAvatar name={friend.name} size="md" />
                         <div>
-                          <div className={`font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          <div className={`font-semibold flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                             {friend.name}
                             {friend.currentStreak > 0 && (
                               <span className="flex items-center gap-1 text-orange-500 text-sm">
@@ -202,8 +200,8 @@ window.FriendsManager = ({
                               </span>
                             )}
                           </div>
-                          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                            Level {friend.level || 1} • {friend.totalXP ?? friend.totalPages ?? 0} XP • {bookCount} {bookCount === 1 ? 'bok' : 'bøker'}
+                          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>
+                            Level {friend.level || 1} • {getUserXP(friend)} XP • {bookCount} {bookCount === 1 ? 'bok' : 'bøker'}
                           </div>
                           {leagueNames.length > 0 && (
                             <div className={`text-xs mt-1 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
@@ -294,12 +292,10 @@ window.FriendsManager = ({
                   return (
                     <div key={fromId} className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          {requester.name?.charAt(0).toUpperCase() || '?'}
-                        </div>
+                        <UserAvatar name={requester.name} size="sm" />
                         <div>
-                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{requester.name}</div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Level {requester.level || 1}</div>
+                          <div className={`font-medium ${getTextClassName(darkMode, 'heading')}`}>{requester.name}</div>
+                          <div className={`text-xs ${getTextClassName(darkMode, 'muted')}`}>Level {requester.level || 1}</div>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -341,12 +337,10 @@ window.FriendsManager = ({
                   return (
                     <div key={toId} className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                          {recipient.name?.charAt(0).toUpperCase() || '?'}
-                        </div>
+                        <UserAvatar name={recipient.name} size="sm" bgColor="gray" />
                         <div>
-                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{recipient.name}</div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Venter på svar...</div>
+                          <div className={`font-medium ${getTextClassName(darkMode, 'heading')}`}>{recipient.name}</div>
+                          <div className={`text-xs ${getTextClassName(darkMode, 'muted')}`}>Venter på svar...</div>
                         </div>
                       </div>
                       <button
@@ -377,20 +371,16 @@ window.FriendsManager = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Søk etter brukere..."
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'border-gray-300 text-gray-900'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${getInputClassName(darkMode)}`}
             />
           </div>
           
           {searchTerm.length < 2 ? (
-            <div className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`text-center py-4 ${getTextClassName(darkMode, 'muted')}`}>
               Skriv minst 2 tegn for å søke
             </div>
           ) : searchResults.length === 0 ? (
-            <div className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`text-center py-4 ${getTextClassName(darkMode, 'muted')}`}>
               Ingen brukere funnet
             </div>
           ) : (
@@ -398,11 +388,9 @@ window.FriendsManager = ({
               {searchResults.map(user => (
                 <div key={user.id} className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {user.name?.charAt(0).toUpperCase() || '?'}
-                    </div>
+                    <UserAvatar name={user.name} size="sm" />
                     <div>
-                      <div className={`font-medium flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      <div className={`font-medium flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                         {user.name}
                         {user.currentStreak > 0 && (
                           <span className="flex items-center gap-1 text-orange-500 text-xs">
@@ -411,8 +399,8 @@ window.FriendsManager = ({
                           </span>
                         )}
                       </div>
-                      <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        Level {user.level || 1} • {user.totalXP ?? user.totalPages ?? 0} XP
+                      <div className={`text-xs ${getTextClassName(darkMode, 'muted')}`}>
+                        Level {user.level || 1} • {getUserXP(user)} XP
                       </div>
                     </div>
                   </div>
@@ -432,22 +420,14 @@ window.FriendsManager = ({
       
       {/* Success Display */}
       {success && (
-        <div className={`border px-4 py-3 rounded-lg ${
-          darkMode 
-            ? 'bg-green-900 bg-opacity-30 border-green-700 text-green-300' 
-            : 'bg-green-50 border-green-200 text-green-700'
-        }`}>
+        <div className={`border px-4 py-3 rounded-lg ${getSuccessClassName(darkMode)}`}>
           {success}
         </div>
       )}
       
       {/* Error Display */}
       {error && (
-        <div className={`border px-4 py-3 rounded-lg ${
-          darkMode 
-            ? 'bg-red-900 bg-opacity-30 border-red-700 text-red-300' 
-            : 'bg-red-50 border-red-200 text-red-700'
-        }`}>
+        <div className={`border px-4 py-3 rounded-lg ${getErrorClassName(darkMode)}`}>
           {error}
         </div>
       )}
