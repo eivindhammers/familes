@@ -683,36 +683,36 @@ const BookContestApp = () => {
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
     const yesterdayString = yesterdayDate.toISOString().split('T')[0];
 
+    const lastReadDate = currentProfile.lastReadDate || null;
     const pagesReadToday = currentProfile.pagesReadToday || 0;
-    const currentStreakValue = currentProfile.currentStreak || 0;
-    const streakNeedsReset = currentProfile.lastReadDate &&
-      currentProfile.lastReadDate < yesterdayString;
+    let currentStreak = currentProfile.currentStreak || 0;
 
-    const updatedCurrentStreak = streakNeedsReset ? 0 : currentStreakValue;
-    const updatedPagesReadToday = currentProfile.lastReadDate === today ? pagesReadToday : 0;
+    if (lastReadDate && lastReadDate < yesterdayString) {
+      currentStreak = 0;
+    }
 
-    if (updatedCurrentStreak === currentStreakValue && updatedPagesReadToday === pagesReadToday) {
+    const updatedPagesReadToday = lastReadDate === today ? pagesReadToday : 0;
+
+    if (currentStreak === (currentProfile.currentStreak || 0) && updatedPagesReadToday === pagesReadToday) {
       return;
     }
 
     const updatedProfile = {
       ...currentProfile,
-      currentStreak: updatedCurrentStreak,
+      currentStreak,
       pagesReadToday: updatedPagesReadToday
     };
 
     setCurrentProfile(updatedProfile);
 
-    const persistProfileUpdates = async () => {
+    (async () => {
       try {
         await saveProfile(authUser.uid, updatedProfile.id, updatedProfile);
         await saveUserToGlobalList(updatedProfile.id, updatedProfile);
       } catch (error) {
         console.error('Error refreshing streak on login:', error);
       }
-    };
-
-    persistProfileUpdates();
+    })();
   }, [currentProfile, authUser]);
 
   // Load profile data
