@@ -24,7 +24,8 @@ window.APP_CONSTANTS = {
   // XP system: 1 page read = 1 XP (but XP can come from other sources too)
   XP_BASE: 10,         // XP needed for first level up (1→2)
   XP_MULTIPLIER: 1.5,  // Each level requires 50% more XP than the previous
-  DAILY_PAGES_GOAL: 5  // Pages needed per day to maintain streak (streaks are about reading, not XP)
+  DAILY_PAGES_GOAL: 5, // Pages needed per day to maintain streak (streaks are about reading, not XP)
+  MONTHLY_WINNER_REWARD: 100 // XP reward for winning the monthly competition
 };
 
 // Icon components (available globally)

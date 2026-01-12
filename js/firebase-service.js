@@ -229,6 +229,86 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
 };
 
 /**
+ * Get and update monthly winner for a league
+ * @param {string} leagueId - League ID
+ * @param {Object} leagueLeaderboard - Current league leaderboard data
+ * @returns {Promise<Object>} Object with winner info and whether it's newly determined
+ */
+window.determineMonthlyWinner = async (leagueId, leagueLeaderboard) => {
+  const { database, getCurrentMonth, getMonthlyLeaderboard } = window;
+  
+  const currentMonth = getCurrentMonth();
+  const lastMonth = getLastMonth();
+  
+  // Get stored monthly winner data
+  const winnerSnapshot = await database.ref(`leagues/${leagueId}/monthlyWinners/${lastMonth}`).once('value');
+  const existingWinner = winnerSnapshot.val();
+  
+  // If we already have a winner for last month, return it
+  if (existingWinner) {
+    return { winner: existingWinner, isNew: false };
+  }
+  
+  // Otherwise, determine the winner from leaderboard data
+  // Find users who have the correct month and get the top one
+  const usersLastMonth = Object.values(leagueLeaderboard || {})
+    .filter(user => user.currentMonth === lastMonth)
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0));
+  
+  if (usersLastMonth.length === 0 || (usersLastMonth[0].monthlyXP || 0) === 0) {
+    return { winner: null, isNew: false };
+  }
+  
+  const winner = {
+    profileId: usersLastMonth[0].id,
+    name: usersLastMonth[0].name,
+    monthlyXP: usersLastMonth[0].monthlyXP,
+    month: lastMonth,
+    rewardClaimed: false
+  };
+  
+  // Store the winner
+  await database.ref(`leagues/${leagueId}/monthlyWinners/${lastMonth}`).set(winner);
+  
+  return { winner, isNew: true };
+};
+
+/**
+ * Helper function to get last month in YYYY-MM format
+ * @returns {string} Last month as YYYY-MM string
+ */
+window.getLastMonth = () => {
+  const today = new Date();
+  today.setMonth(today.getMonth() - 1);
+  return today.toISOString().substring(0, 7);
+};
+
+/**
+ * Claim monthly winner reward
+ * @param {string} leagueId - League ID
+ * @param {string} month - Month in YYYY-MM format
+ * @param {string} profileId - Winner's profile ID
+ * @param {number} rewardXP - Amount of XP to award
+ * @returns {Promise<boolean>} True if reward was claimed successfully
+ */
+window.claimMonthlyReward = async (leagueId, month, profileId, rewardXP) => {
+  const { database } = window;
+  
+  // Check if reward was already claimed
+  const winnerSnapshot = await database.ref(`leagues/${leagueId}/monthlyWinners/${month}`).once('value');
+  const winner = winnerSnapshot.val();
+  
+  if (!winner || winner.profileId !== profileId || winner.rewardClaimed) {
+    return false;
+  }
+  
+  // Mark reward as claimed
+  await database.ref(`leagues/${leagueId}/monthlyWinners/${month}/rewardClaimed`).set(true);
+  
+  return true;
+};
+
+/**
  * Load league leaderboard and set up real-time listener
  * @param {string} leagueId - League ID
  * @param {Function} callback - Callback to receive leaderboard data
