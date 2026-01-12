@@ -32,6 +32,30 @@ window.getCurrentMonth = () => {
 };
 
 /**
+ * Get a list of available months for historical view
+ * Returns last 12 months including current month
+ * @returns {Array<{value: string, label: string}>} Array of month options
+ */
+window.getAvailableMonths = () => {
+  const months = [];
+  const today = new Date();
+  
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthValue = date.toISOString().substring(0, 7);
+    
+    // Format as "Month Year" for display
+    const monthNames = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 
+                       'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];
+    const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    
+    months.push({ value: monthValue, label: monthLabel });
+  }
+  
+  return months;
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)
@@ -135,18 +159,19 @@ window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
 
 /**
  * Generate monthly leaderboard with rankings
- * Rankings are based on monthlyXP for the current month
+ * Rankings are based on monthlyXP for the specified month
  * @param {Object} leagueLeaderboard - League leaderboard data
+ * @param {string} targetMonth - Target month in YYYY-MM format (defaults to current month)
  * @returns {Array} Sorted array of users with rank property
  */
-window.getMonthlyLeaderboard = (leagueLeaderboard) => {
-  const currentMonth = window.getCurrentMonth();
+window.getMonthlyLeaderboard = (leagueLeaderboard, targetMonth = null) => {
+  const month = targetMonth || window.getCurrentMonth();
   
   return Object.values(leagueLeaderboard)
     .map(user => ({
       ...user,
-      // Reset monthly XP if user's month doesn't match current month
-      monthlyXP: user.currentMonth === currentMonth ? (user.monthlyXP || 0) : 0
+      // Reset monthly XP if user's month doesn't match target month
+      monthlyXP: user.currentMonth === month ? (user.monthlyXP || 0) : 0
     }))
     .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0))
     .map((user, index) => ({ ...user, rank: index + 1 }));

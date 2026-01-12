@@ -586,3 +586,46 @@ window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
   
   return totalMonthlyXP;
 };
+
+/**
+ * Generate historical monthly leaderboard for a specific month
+ * Calculates monthly XP from reading history for all league members
+ * @param {string} leagueId - League ID
+ * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2025-12")
+ * @param {Object} leagueData - League data with members
+ * @param {Object} allUsers - All users data
+ * @returns {Promise<Array>} Sorted array of users with monthly XP and rank
+ */
+window.generateHistoricalMonthlyLeaderboard = async (leagueId, targetMonth, leagueData, allUsers) => {
+  const { calculateMonthlyXPFromHistory } = window;
+  
+  if (!leagueData || !leagueData.members || !allUsers) {
+    return [];
+  }
+  
+  const memberIds = Object.keys(leagueData.members);
+  const leaderboardPromises = memberIds.map(async (profileId) => {
+    const user = allUsers[profileId];
+    if (!user) return null;
+    
+    const monthlyXP = await calculateMonthlyXPFromHistory(profileId, targetMonth);
+    
+    return {
+      id: profileId,
+      name: user.name,
+      monthlyXP: monthlyXP,
+      totalXP: user.totalXP || 0,
+      level: user.level || 1,
+      currentStreak: user.currentStreak || 0,
+      longestStreak: user.longestStreak || 0,
+      currentMonth: targetMonth
+    };
+  });
+  
+  const results = await Promise.all(leaderboardPromises);
+  
+  return results
+    .filter(user => user !== null)
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
+};

@@ -1,7 +1,7 @@
 /**
  * Leaderboard Component
  * Displays ranked list of all users by total XP or monthly XP
- * Supports filtering by league
+ * Supports filtering by league and viewing historical monthly competitions
  */
 
 window.Leaderboard = ({ 
@@ -14,11 +14,20 @@ window.Leaderboard = ({
   darkMode
 }) => {
   const { Flame } = window.Icons;
-  const { getLeaderboard, getMonthlyLeaderboard, getUserXP, getCardClassName, getTextClassName } = window;
+  const { getLeaderboard, getMonthlyLeaderboard, getUserXP, getCardClassName, getTextClassName, 
+          getCurrentMonth, getAvailableMonths } = window;
+  const { generateHistoricalMonthlyLeaderboard } = window;
   const { useEffect, useState } = React;
   
   // State for leaderboard type (total or monthly)
   const [leaderboardType, setLeaderboardType] = useState('total');
+  
+  // State for selected month
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  
+  // State for historical leaderboard data
+  const [historicalLeaderboard, setHistoricalLeaderboard] = useState(null);
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false);
   
   // Get leagues that current profile is a member of
   const userLeagues = leagues && currentProfile.leagues 
@@ -32,12 +41,40 @@ window.Leaderboard = ({
     }
   }, [userLeagues.length, currentLeagueId, setCurrentLeagueId]);
   
+  // Load historical data when month or league changes
+  useEffect(() => {
+    const loadHistoricalData = async () => {
+      if (leaderboardType === 'monthly' && selectedMonth !== getCurrentMonth() && currentLeagueId) {
+        setIsLoadingHistorical(true);
+        const currentLeague = leagues && leagues[currentLeagueId];
+        if (currentLeague) {
+          const historical = await generateHistoricalMonthlyLeaderboard(
+            currentLeagueId, 
+            selectedMonth, 
+            currentLeague,
+            users
+          );
+          setHistoricalLeaderboard(historical);
+        }
+        setIsLoadingHistorical(false);
+      } else {
+        setHistoricalLeaderboard(null);
+      }
+    };
+    
+    loadHistoricalData();
+  }, [leaderboardType, selectedMonth, currentLeagueId, leagues, users]);
+  
   // Determine which leaderboard to show
   const leaderboardData = currentLeagueId && leagueLeaderboard
     ? (leaderboardType === 'monthly' 
-        ? getMonthlyLeaderboard(leagueLeaderboard)
+        ? (selectedMonth === getCurrentMonth() 
+            ? getMonthlyLeaderboard(leagueLeaderboard, selectedMonth)
+            : (historicalLeaderboard || []))
         : getLeaderboard(null, currentLeagueId, leagueLeaderboard))
     : [];
+
+  const availableMonths = getAvailableMonths();
 
   return (
     <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
@@ -113,6 +150,35 @@ window.Leaderboard = ({
                 Månedens XP
               </button>
             </div>
+          </div>
+        )}
+        
+        {/* Month Selector - only show when monthly view is selected */}
+        {currentLeagueId && userLeagues.length > 0 && leaderboardType === 'monthly' && (
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
+              Velg måned
+            </label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className={`max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                darkMode 
+                  ? 'bg-gray-700 text-white border-gray-600' 
+                  : 'border-gray-300'
+              }`}
+            >
+              {availableMonths.map(month => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+            {isLoadingHistorical && (
+              <div className={`mt-2 text-sm ${getTextClassName(darkMode, 'muted')}`}>
+                Laster historikk...
+              </div>
+            )}
           </div>
         )}
         
