@@ -39,14 +39,14 @@ window.getCurrentMonth = () => {
 window.getAvailableMonths = () => {
   const months = [];
   const today = new Date();
-  const competitionStartMonth = '2025-12'; // Competition started December 2025
+  const { COMPETITION_START_MONTH } = window.APP_CONSTANTS;
   
   for (let i = 0; i < 12; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
     const monthValue = date.toISOString().substring(0, 7);
     
-    // Only include months from December 2025 onwards
-    if (monthValue < competitionStartMonth) {
+    // Only include months from competition start onwards
+    if (monthValue < COMPETITION_START_MONTH) {
       break;
     }
     
