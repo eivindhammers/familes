@@ -707,8 +707,9 @@ const BookContestApp = () => {
       try {
         await saveProfile(authUser.uid, updatedProfile.id, updatedProfile);
         await saveUserToGlobalList(updatedProfile.id, updatedProfile);
-        if (updatedProfile.leagues && updatedProfile.leagues.length > 0) {
-          for (const leagueId of updatedProfile.leagues) {
+        const leaguesForProfile = updatedProfile.leagues || [];
+        if (leaguesForProfile.length > 0) {
+          for (const leagueId of leaguesForProfile) {
             await updateLeagueLeaderboard(leagueId, updatedProfile.id, updatedProfile);
           }
         }
