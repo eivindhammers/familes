@@ -229,13 +229,35 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
 };
 
 /**
+ * Helper function to get last month in YYYY-MM format
+ * @returns {string} Last month as YYYY-MM string
+ */
+window.getLastMonth = () => {
+  const today = new Date();
+  // Get year and month, then subtract 1 from month
+  let year = today.getFullYear();
+  let month = today.getMonth(); // 0-11
+  
+  // If January, go to December of previous year
+  if (month === 0) {
+    year -= 1;
+    month = 11;
+  } else {
+    month -= 1;
+  }
+  
+  // Format as YYYY-MM
+  return `${year}-${String(month + 1).padStart(2, '0')}`;
+};
+
+/**
  * Get and update monthly winner for a league
  * @param {string} leagueId - League ID
  * @param {Object} leagueLeaderboard - Current league leaderboard data
  * @returns {Promise<Object>} Object with winner info and whether it's newly determined
  */
 window.determineMonthlyWinner = async (leagueId, leagueLeaderboard) => {
-  const { database, getCurrentMonth, getMonthlyLeaderboard } = window;
+  const { database, getCurrentMonth, getMonthlyLeaderboard, getLastMonth } = window;
   
   const currentMonth = getCurrentMonth();
   const lastMonth = getLastMonth();
@@ -271,16 +293,6 @@ window.determineMonthlyWinner = async (leagueId, leagueLeaderboard) => {
   await database.ref(`leagues/${leagueId}/monthlyWinners/${lastMonth}`).set(winner);
   
   return { winner, isNew: true };
-};
-
-/**
- * Helper function to get last month in YYYY-MM format
- * @returns {string} Last month as YYYY-MM string
- */
-window.getLastMonth = () => {
-  const today = new Date();
-  today.setMonth(today.getMonth() - 1);
-  return today.toISOString().substring(0, 7);
 };
 
 /**
