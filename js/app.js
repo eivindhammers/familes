@@ -707,6 +707,11 @@ const BookContestApp = () => {
       try {
         await saveProfile(authUser.uid, updatedProfile.id, updatedProfile);
         await saveUserToGlobalList(updatedProfile.id, updatedProfile);
+        if (updatedProfile.leagues && updatedProfile.leagues.length > 0) {
+          for (const leagueId of updatedProfile.leagues) {
+            await updateLeagueLeaderboard(leagueId, updatedProfile.id, updatedProfile);
+          }
+        }
       } catch (error) {
         console.error('Error refreshing streak on login:', error);
       }
