@@ -22,6 +22,7 @@ window.ProfileHeader = ({
 }) => {
   const { useState, useRef, useEffect } = React;
   const { BookOpen, LogOut, Flame, Bell, Check, X, Moon, Sun } = window.Icons;
+  const { getCardClassName, getTextClassName, UserAvatar } = window;
   
   // Notification dropdown state
   const [showNotifications, setShowNotifications] = useState(false);
@@ -54,13 +55,13 @@ window.ProfileHeader = ({
   }, []);
 
   return (
-    <div className={`rounded-lg shadow-md p-4 sm:p-6 mb-6 transition-colors ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 mb-6 transition-colors ${getCardClassName(darkMode)}`}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
           <div>
-            <h1 className={`text-xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.name}</h1>
-            <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>FamiLes 2026</p>
+            <h1 className={`text-xl sm:text-3xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</h1>
+            <p className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>FamiLes 2026</p>
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -103,7 +104,7 @@ window.ProfileHeader = ({
                   : 'bg-white border-gray-200'
               }`}>
                 <div className={`p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Varsler</h3>
+                  <h3 className={`font-semibold ${getTextClassName(darkMode, 'heading')}`}>Varsler</h3>
                 </div>
                 {/* Success message */}
                 {friendSuccess && (
@@ -113,7 +114,7 @@ window.ProfileHeader = ({
                 )}
                 <div className="max-h-80 overflow-y-auto">
                   {totalNotifications === 0 && !friendSuccess ? (
-                    <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <div className={`p-4 text-center ${getTextClassName(darkMode, 'muted')}`}>
                       Ingen varsler
                     </div>
                   ) : totalNotifications === 0 ? null : (
@@ -127,11 +128,9 @@ window.ProfileHeader = ({
                           <div key={`accepted-${accepterId}`} className={`flex items-center gap-3 p-2 rounded-lg ${
                             darkMode ? 'bg-green-900 bg-opacity-30' : 'bg-green-50'
                           }`}>
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                              {accepter.name?.charAt(0).toUpperCase() || '?'}
-                            </div>
+                            <UserAvatar name={accepter.name} size="sm" bgColor="green" />
                             <div className="flex-1">
-                              <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{accepter.name}</div>
+                              <div className={`text-sm font-medium ${getTextClassName(darkMode, 'heading')}`}>{accepter.name}</div>
                               <div className="text-xs text-green-600">Godtok venneforespørselen din</div>
                             </div>
                             <button
@@ -154,12 +153,10 @@ window.ProfileHeader = ({
                           <div key={`request-${fromId}`} className={`flex items-center gap-3 p-2 rounded-lg ${
                             darkMode ? 'bg-blue-900 bg-opacity-30' : 'bg-blue-50'
                           }`}>
-                            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                              {requester.name?.charAt(0).toUpperCase() || '?'}
-                            </div>
+                            <UserAvatar name={requester.name} size="sm" />
                             <div className="flex-1">
-                              <div className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{requester.name}</div>
-                              <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Vil bli din venn</div>
+                              <div className={`text-sm font-medium ${getTextClassName(darkMode, 'heading')}`}>{requester.name}</div>
+                              <div className={`text-xs ${getTextClassName(darkMode, 'muted')}`}>Vil bli din venn</div>
                             </div>
                             <div className="flex gap-1">
                               <button
@@ -229,16 +226,14 @@ window.ProfileHeader = ({
       }`}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-              {currentProfile.name.charAt(0).toUpperCase()}
-            </div>
+            <UserAvatar name={currentProfile.name} size="lg" />
             <div>
-              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Aktiv profil</div>
-              <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.name}</div>
+              <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Aktiv profil</div>
+              <div className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</div>
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Level</div>
+            <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Level</div>
             <div className={`text-4xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{currentProfile.level}</div>
           </div>
         </div>
@@ -248,7 +243,7 @@ window.ProfileHeader = ({
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className={`text-sm text-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <div className={`text-sm text-center ${getTextClassName(darkMode, 'body')}`}>
           {xpProgress.currentXP} / {xpProgress.neededXP} XP til Level {currentProfile.level + 1}
         </div>
       </div>
@@ -261,9 +256,9 @@ window.ProfileHeader = ({
         }`}>
           <div className="flex items-center justify-center gap-2 mb-1">
             <Flame className={`w-6 h-6 ${currentProfile.currentStreak > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.currentStreak || 0}</span>
+            <span className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.currentStreak || 0}</span>
           </div>
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Daglig streak</div>
+          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Daglig streak</div>
         </div>
         
         <div className={`rounded-lg p-4 text-center ${
@@ -271,8 +266,8 @@ window.ProfileHeader = ({
             ? 'bg-gradient-to-br from-yellow-900 to-orange-900' 
             : 'bg-gradient-to-br from-yellow-50 to-orange-50'
         }`}>
-          <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.longestStreak || 0}</div>
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Beste streak</div>
+          <div className={`text-2xl font-bold mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.longestStreak || 0}</div>
+          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Beste streak</div>
         </div>
         
         <div className={`rounded-lg p-4 text-center ${
@@ -280,8 +275,8 @@ window.ProfileHeader = ({
             ? 'bg-gradient-to-br from-green-900 to-emerald-900' 
             : 'bg-gradient-to-br from-green-50 to-emerald-50'
         }`}>
-          <div className={`text-2xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{currentProfile.pagesReadToday || 0}</div>
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</div>
+          <div className={`text-2xl font-bold mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</div>
+          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</div>
         </div>
       </div>
     </div>

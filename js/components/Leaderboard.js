@@ -14,7 +14,7 @@ window.Leaderboard = ({
   darkMode
 }) => {
   const { Flame } = window.Icons;
-  const { getLeaderboard } = window;
+  const { getLeaderboard, getUserXP, getCardClassName, getTextClassName } = window;
   const { useEffect } = React;
   
   // Get leagues that current profile is a member of
@@ -35,15 +35,15 @@ window.Leaderboard = ({
     : [];
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
       <div className="mb-4">
-        <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+        <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>
           {currentLeagueId ? 'Liga ledertavle' : 'FamiLes ledertavle'}
         </h2>
         
         {/* League Selector */}
         <div className="mb-4">
-          <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
             Velg liga
           </label>
           <select
@@ -109,7 +109,7 @@ window.Leaderboard = ({
                   #{user.rank}
                 </div>
                 <div>
-                  <div className={`font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  <div className={`font-semibold flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                     {user.name}
                     {user.currentStreak > 0 && (
                       <span className="flex items-center gap-1 text-orange-500 text-sm">
@@ -118,12 +118,12 @@ window.Leaderboard = ({
                       </span>
                     )}
                   </div>
-                  <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Level {user.level}</div>
+                  <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>Level {user.level}</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{user.totalXP ?? user.totalPages ?? 0}</div>
-                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>XP</div>
+                <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{getUserXP(user)}</div>
+                <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>XP</div>
               </div>
             </div>
           ))
