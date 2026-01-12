@@ -23,6 +23,27 @@ window.getTodayString = () => {
 };
 
 /**
+ * Get yesterday's date in ISO format (YYYY-MM-DD)
+ * @returns {string} Yesterday's date as ISO string
+ */
+window.getYesterdayString = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+};
+
+/**
+ * Determine if a reading streak has been broken (missed day)
+ * @param {string|null} lastReadDate - ISO string of last reading day
+ * @param {string} yesterdayString - ISO string for yesterday
+ * @returns {boolean} True if the streak should reset
+ */
+window.hasBrokenStreak = (lastReadDate, yesterdayString) => {
+  if (!lastReadDate) return false;
+  return lastReadDate < yesterdayString;
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)

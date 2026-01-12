@@ -11,13 +11,11 @@
  * @returns {Object} Updated streak data
  */
 window.useStreakCalculation = (profile, pagesAdded) => {
-  const { getTodayString } = window;
+  const { getTodayString, getYesterdayString, hasBrokenStreak } = window;
   const { DAILY_PAGES_GOAL } = window.APP_CONSTANTS;
   
   const today = getTodayString();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayString = yesterday.toISOString().split('T')[0];
+  const yesterdayString = getYesterdayString();
 
   let currentStreak = profile.currentStreak || 0;
   let longestStreak = profile.longestStreak || 0;
@@ -35,14 +33,14 @@ window.useStreakCalculation = (profile, pagesAdded) => {
       if (lastReadDate === yesterdayString) {
         currentStreak += 1;
       }
-    } else if (lastReadDate === null || lastReadDate < yesterdayString) {
+    } else if (lastReadDate === null || hasBrokenStreak(lastReadDate, yesterdayString)) {
       currentStreak = 1;
     }
 
     if (currentStreak > longestStreak) {
       longestStreak = currentStreak;
     }
-  } else if (lastReadDate && lastReadDate < yesterdayString) {
+  } else if (hasBrokenStreak(lastReadDate, yesterdayString)) {
     currentStreak = 0;
   }
 

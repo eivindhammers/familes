@@ -677,17 +677,15 @@ const BookContestApp = () => {
   useEffect(() => {
     if (!currentProfile || !authUser) return;
 
-    const { getTodayString } = window;
+    const { getTodayString, getYesterdayString, hasBrokenStreak } = window;
     const today = getTodayString();
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayString = yesterdayDate.toISOString().split('T')[0];
+    const yesterdayString = getYesterdayString();
 
     const lastReadDate = currentProfile.lastReadDate || null;
     const pagesReadToday = currentProfile.pagesReadToday || 0;
     let currentStreak = currentProfile.currentStreak || 0;
 
-    if (lastReadDate && lastReadDate < yesterdayString) {
+    if (hasBrokenStreak(lastReadDate, yesterdayString)) {
       currentStreak = 0;
     }
 
@@ -705,14 +703,16 @@ const BookContestApp = () => {
 
     setCurrentProfile(updatedProfile);
 
-    (async () => {
+    const persistProfileUpdates = async () => {
       try {
         await saveProfile(authUser.uid, updatedProfile.id, updatedProfile);
         await saveUserToGlobalList(updatedProfile.id, updatedProfile);
       } catch (error) {
         console.error('Error refreshing streak on login:', error);
       }
-    })();
+    };
+
+    persistProfileUpdates();
   }, [currentProfile, authUser]);
 
   // Load profile data
