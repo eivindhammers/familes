@@ -30,9 +30,8 @@ window.checkAndResetStreak = (profile) => {
       pagesReadToday: 0
     };
   }
-  
   // Reset pagesReadToday if it's a new day (but keep streak intact if it was yesterday)
-  if (lastReadDate && lastReadDate !== today && pagesReadToday > 0) {
+  else if (lastReadDate && lastReadDate !== today && pagesReadToday > 0) {
     return {
       pagesReadToday: 0
     };
