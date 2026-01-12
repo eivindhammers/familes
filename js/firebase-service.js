@@ -543,3 +543,38 @@ window.deleteAllProfiles = async (uid, profiles) => {
   
   await database.ref().update(updates);
 };
+
+/**
+ * Calculate monthly XP from reading history for a specific month
+ * @param {string} profileId - Profile ID
+ * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2026-01")
+ * @returns {Promise<number>} Total XP earned in that month
+ */
+window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
+  const { database } = window;
+  
+  // Load all reading history for this profile
+  const snapshot = await database.ref(`readingHistory/${profileId}`).once('value');
+  const historyData = snapshot.val();
+  
+  if (!historyData) {
+    return 0;
+  }
+  
+  let totalMonthlyXP = 0;
+  
+  // Iterate through all books and their reading entries
+  Object.values(historyData).forEach(bookEntries => {
+    Object.values(bookEntries).forEach(entry => {
+      // Check if entry timestamp is in the target month
+      if (entry.timestamp && entry.xpEarned) {
+        const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
+        if (entryMonth === targetMonth) {
+          totalMonthlyXP += entry.xpEarned;
+        }
+      }
+    });
+  });
+  
+  return totalMonthlyXP;
+};

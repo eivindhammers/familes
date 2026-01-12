@@ -427,10 +427,18 @@ const BookContestApp = () => {
     }
     
     // Calculate monthlyXP (reset if month has changed)
+    const { getCurrentMonth, calculateMonthlyXPFromHistory } = window;
     const currentMonth = getCurrentMonth();
     let monthlyXP = currentProfile.monthlyXP || 0;
+    
     if (currentProfile.currentMonth === currentMonth) {
+      // Same month - add to existing monthly XP
       monthlyXP += xpFromPages;
+    } else if (currentProfile.currentMonth === undefined) {
+      // First time setting monthly XP - calculate from history for current month
+      // This ensures that pages read earlier in the month (before PR) are counted
+      const historicalMonthlyXP = await calculateMonthlyXPFromHistory(currentProfile.id, currentMonth);
+      monthlyXP = historicalMonthlyXP + xpFromPages;
     } else {
       // New month - reset monthly XP
       monthlyXP = xpFromPages;
