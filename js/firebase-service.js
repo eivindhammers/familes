@@ -218,6 +218,8 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
     name: profile.name,
     totalPages: profile.totalPages,
     totalXP: getUserXP(profile),
+    monthlyXP: profile.monthlyXP || 0,
+    currentMonth: profile.currentMonth || window.getCurrentMonth(),
     level: profile.level,
     currentStreak: profile.currentStreak,
     longestStreak: profile.longestStreak

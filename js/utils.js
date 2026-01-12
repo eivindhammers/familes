@@ -23,6 +23,15 @@ window.getTodayString = () => {
 };
 
 /**
+ * Get current month in YYYY-MM format
+ * @returns {string} Current month as YYYY-MM string
+ */
+window.getCurrentMonth = () => {
+  const today = new Date();
+  return today.toISOString().substring(0, 7); // YYYY-MM
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)
@@ -121,6 +130,25 @@ window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
   // Otherwise return global leaderboard
   return Object.values(users)
     .sort((a, b) => getUserXP(b) - getUserXP(a))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
+};
+
+/**
+ * Generate monthly leaderboard with rankings
+ * Rankings are based on monthlyXP for the current month
+ * @param {Object} leagueLeaderboard - League leaderboard data
+ * @returns {Array} Sorted array of users with rank property
+ */
+window.getMonthlyLeaderboard = (leagueLeaderboard) => {
+  const currentMonth = window.getCurrentMonth();
+  
+  return Object.values(leagueLeaderboard)
+    .map(user => ({
+      ...user,
+      // Reset monthly XP if user's month doesn't match current month
+      monthlyXP: user.currentMonth === currentMonth ? (user.monthlyXP || 0) : 0
+    }))
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0))
     .map((user, index) => ({ ...user, rank: index + 1 }));
 };
 

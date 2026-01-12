@@ -224,6 +224,8 @@ const BookContestApp = () => {
           lastReadDate: null,
           pagesReadToday: 0,
           xpEarnedToday: 0,
+          monthlyXP: 0,
+          currentMonth: window.getCurrentMonth(),
           createdAt: new Date().toISOString()
         };
         await saveProfile(userCredential.user.uid, profileId, defaultProfile);
@@ -272,6 +274,8 @@ const BookContestApp = () => {
       lastReadDate: null,
       pagesReadToday: 0,
       xpEarnedToday: 0,
+      monthlyXP: 0,
+      currentMonth: window.getCurrentMonth(),
       createdAt: new Date().toISOString()
     };
 
@@ -413,7 +417,7 @@ const BookContestApp = () => {
     const wasStreakActive = currentProfile.currentStreak > 0;
     
     // Calculate xpEarnedToday
-    const { getTodayString } = window;
+    const { getTodayString, getCurrentMonth } = window;
     const today = getTodayString();
     let xpEarnedToday = currentProfile.xpEarnedToday || 0;
     if (currentProfile.lastReadDate === today) {
@@ -422,11 +426,23 @@ const BookContestApp = () => {
       xpEarnedToday = xpFromPages;
     }
     
+    // Calculate monthlyXP (reset if month has changed)
+    const currentMonth = getCurrentMonth();
+    let monthlyXP = currentProfile.monthlyXP || 0;
+    if (currentProfile.currentMonth === currentMonth) {
+      monthlyXP += xpFromPages;
+    } else {
+      // New month - reset monthly XP
+      monthlyXP = xpFromPages;
+    }
+    
     const updatedProfile = {
       ...currentProfile,
       totalPages: totalPagesAcrossAllBooks,
       totalXP: newTotalXP,
       xpEarnedToday: xpEarnedToday,
+      monthlyXP: monthlyXP,
+      currentMonth: currentMonth,
       level: newLevel,
       ...streakData
     };
