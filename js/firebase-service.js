@@ -570,9 +570,14 @@ window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
       Object.values(bookEntries).forEach(entry => {
         // Check if entry is an object with the required fields
         if (entry && typeof entry === 'object' && entry.timestamp && entry.xpEarned) {
-          const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
-          if (entryMonth === targetMonth) {
-            totalMonthlyXP += entry.xpEarned;
+          // Validate timestamp is a string with sufficient length
+          if (typeof entry.timestamp === 'string' && entry.timestamp.length >= 7) {
+            const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
+            if (entryMonth === targetMonth) {
+              // Validate xpEarned is a number before adding
+              const xp = typeof entry.xpEarned === 'number' ? entry.xpEarned : 0;
+              totalMonthlyXP += xp;
+            }
           }
         }
       });
