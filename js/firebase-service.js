@@ -565,15 +565,18 @@ window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
   
   // Iterate through all books and their reading entries
   Object.values(historyData).forEach(bookEntries => {
-    Object.values(bookEntries).forEach(entry => {
-      // Check if entry timestamp is in the target month
-      if (entry.timestamp && entry.xpEarned) {
-        const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
-        if (entryMonth === targetMonth) {
-          totalMonthlyXP += entry.xpEarned;
+    // Ensure bookEntries is an object before trying to iterate
+    if (bookEntries && typeof bookEntries === 'object') {
+      Object.values(bookEntries).forEach(entry => {
+        // Check if entry is an object with the required fields
+        if (entry && typeof entry === 'object' && entry.timestamp && entry.xpEarned) {
+          const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
+          if (entryMonth === targetMonth) {
+            totalMonthlyXP += entry.xpEarned;
+          }
         }
-      }
-    });
+      });
+    }
   });
   
   return totalMonthlyXP;

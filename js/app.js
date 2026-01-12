@@ -417,7 +417,7 @@ const BookContestApp = () => {
     const wasStreakActive = currentProfile.currentStreak > 0;
     
     // Calculate xpEarnedToday
-    const { getTodayString, getCurrentMonth } = window;
+    const { getTodayString, getCurrentMonth, calculateMonthlyXPFromHistory } = window;
     const today = getTodayString();
     let xpEarnedToday = currentProfile.xpEarnedToday || 0;
     if (currentProfile.lastReadDate === today) {
@@ -427,7 +427,6 @@ const BookContestApp = () => {
     }
     
     // Calculate monthlyXP (reset if month has changed)
-    const { getCurrentMonth, calculateMonthlyXPFromHistory } = window;
     const currentMonth = getCurrentMonth();
     let monthlyXP = currentProfile.monthlyXP || 0;
     
