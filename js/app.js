@@ -679,24 +679,26 @@ const BookContestApp = () => {
 
     const { getTodayString } = window;
     const today = getTodayString();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
+    const yesterdayDate = new Date(today);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayString = yesterdayDate.toISOString().split('T')[0];
 
-    const shouldResetStreak = currentProfile.lastReadDate &&
-      currentProfile.lastReadDate < yesterdayString &&
-      currentProfile.currentStreak !== 0;
-    const shouldResetPages = currentProfile.lastReadDate !== today &&
-      currentProfile.pagesReadToday;
+    const pagesReadToday = currentProfile.pagesReadToday || 0;
+    const currentStreakValue = currentProfile.currentStreak || 0;
+    const streakNeedsReset = currentProfile.lastReadDate &&
+      currentProfile.lastReadDate < yesterdayString;
 
-    if (!shouldResetStreak && !shouldResetPages) {
+    const updatedCurrentStreak = streakNeedsReset ? 0 : currentStreakValue;
+    const updatedPagesReadToday = currentProfile.lastReadDate === today ? pagesReadToday : 0;
+
+    if (updatedCurrentStreak === currentStreakValue && updatedPagesReadToday === pagesReadToday) {
       return;
     }
 
     const updatedProfile = {
       ...currentProfile,
-      currentStreak: shouldResetStreak ? 0 : currentProfile.currentStreak,
-      pagesReadToday: shouldResetPages ? 0 : currentProfile.pagesReadToday
+      currentStreak: updatedCurrentStreak,
+      pagesReadToday: updatedPagesReadToday
     };
 
     setCurrentProfile(updatedProfile);
