@@ -679,7 +679,7 @@ const BookContestApp = () => {
 
     const { getTodayString } = window;
     const today = getTodayString();
-    const yesterdayDate = new Date(today);
+    const yesterdayDate = new Date();
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
     const yesterdayString = yesterdayDate.toISOString().split('T')[0];
 
