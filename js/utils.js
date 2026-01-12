@@ -23,6 +23,16 @@ window.getTodayString = () => {
 };
 
 /**
+ * Get yesterday's date in ISO format (YYYY-MM-DD)
+ * @returns {string} Yesterday's date as ISO string
+ */
+window.getYesterdayString = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return yesterday.toISOString().split('T')[0];
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)

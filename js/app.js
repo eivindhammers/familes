@@ -1,5 +1,5 @@
 // Main Application Component
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 // Destructure from window globals
 const { 
@@ -129,6 +129,9 @@ const BookContestApp = () => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? savedMode === 'true' : false;
   });
+
+  // Ref to track if streak check is in progress (prevents race conditions)
+  const streakCheckInProgress = useRef(false);
 
   // Google Books search with debounce
   useEffect(() => {
@@ -696,21 +699,27 @@ const BookContestApp = () => {
   // Check and reset streak when profile is loaded
   useEffect(() => {
     const checkStreak = async () => {
-      if (currentProfile && authUser) {
+      // Prevent concurrent streak checks
+      if (streakCheckInProgress.current || !currentProfile || !authUser) {
+        return;
+      }
+      
+      streakCheckInProgress.current = true;
+      try {
         const streakUpdate = checkAndResetStreak(currentProfile);
         if (streakUpdate) {
           // Update both local state and database
-          try {
-            await updateProfileFields(authUser.uid, currentProfile.id, streakUpdate);
-            // Update local state
-            setCurrentProfile(prev => ({
-              ...prev,
-              ...streakUpdate
-            }));
-          } catch (err) {
-            console.error('Failed to update streak:', err);
-          }
+          await updateProfileFields(authUser.uid, currentProfile.id, streakUpdate);
+          // Update local state
+          setCurrentProfile(prev => ({
+            ...prev,
+            ...streakUpdate
+          }));
         }
+      } catch (err) {
+        console.error('Failed to update streak:', err);
+      } finally {
+        streakCheckInProgress.current = false;
       }
     };
     
