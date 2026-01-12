@@ -33,16 +33,22 @@ window.getCurrentMonth = () => {
 
 /**
  * Get a list of available months for historical view
- * Returns last 12 months including current month
+ * Returns months from December 2025 onwards (when monthly competition started)
  * @returns {Array<{value: string, label: string}>} Array of month options
  */
 window.getAvailableMonths = () => {
   const months = [];
   const today = new Date();
+  const competitionStartMonth = '2025-12'; // Competition started December 2025
   
   for (let i = 0; i < 12; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
     const monthValue = date.toISOString().substring(0, 7);
+    
+    // Only include months from December 2025 onwards
+    if (monthValue < competitionStartMonth) {
+      break;
+    }
     
     // Format as "Month Year" for display
     const monthNames = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 
