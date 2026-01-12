@@ -673,6 +673,46 @@ const BookContestApp = () => {
     return () => unsubscribe();
   }, []);
 
+  // Refresh streak (and daily counters) when profile is loaded without new pages
+  useEffect(() => {
+    if (!currentProfile || !authUser) return;
+
+    const { getTodayString } = window;
+    const today = getTodayString();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split('T')[0];
+
+    const shouldResetStreak = currentProfile.lastReadDate &&
+      currentProfile.lastReadDate < yesterdayString &&
+      currentProfile.currentStreak !== 0;
+    const shouldResetPages = currentProfile.lastReadDate !== today &&
+      currentProfile.pagesReadToday;
+
+    if (!shouldResetStreak && !shouldResetPages) {
+      return;
+    }
+
+    const updatedProfile = {
+      ...currentProfile,
+      currentStreak: shouldResetStreak ? 0 : currentProfile.currentStreak,
+      pagesReadToday: shouldResetPages ? 0 : currentProfile.pagesReadToday
+    };
+
+    setCurrentProfile(updatedProfile);
+
+    const persistProfileUpdates = async () => {
+      try {
+        await saveProfile(authUser.uid, updatedProfile.id, updatedProfile);
+        await saveUserToGlobalList(updatedProfile.id, updatedProfile);
+      } catch (error) {
+        console.error('Error refreshing streak on login:', error);
+      }
+    };
+
+    persistProfileUpdates();
+  }, [currentProfile, authUser]);
+
   // Load profile data
   useEffect(() => {
     if (currentProfile) {
