@@ -718,7 +718,7 @@ const BookContestApp = () => {
     };
 
     persistProfileUpdates();
-  }, [currentProfile, authUser]);
+  }, [currentProfile?.id, authUser?.uid]);
 
   // Load profile data
   useEffect(() => {
