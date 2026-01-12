@@ -1,7 +1,7 @@
 /**
  * Leaderboard Component
  * Displays ranked list of all users by total XP or monthly XP
- * Supports filtering by league and viewing historical monthly competitions
+ * Supports filtering by league and viewing historical monthly competition results
  */
 
 window.Leaderboard = ({ 

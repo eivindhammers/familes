@@ -591,7 +591,7 @@ window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
  * Generate historical monthly leaderboard for a specific month
  * Calculates monthly XP from reading history for all league members
  * @param {string} leagueId - League ID
- * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2025-12")
+ * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2026-01")
  * @param {Object} leagueData - League data with members
  * @param {Object} allUsers - All users data
  * @returns {Promise<Array>} Sorted array of users with monthly XP and rank
