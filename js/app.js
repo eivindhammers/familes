@@ -755,9 +755,13 @@ const BookContestApp = () => {
   // Load league leaderboard when league is selected
   useEffect(() => {
     if (currentLeagueId) {
-      loadLeagueLeaderboard(currentLeagueId, (data) => {
+      const unsubscribe = loadLeagueLeaderboard(currentLeagueId, (data) => {
         setLeagueLeaderboard(data || {});
       });
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
     } else {
       setLeagueLeaderboard({});
     }

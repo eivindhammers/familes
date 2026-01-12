@@ -238,6 +238,8 @@ window.loadLeagueLeaderboard = (leagueId, callback) => {
     const data = snapshot.val();
     callback(data);
   });
+
+  return () => leaderboardRef.off('value');
 };
 
 // ============ Friend System Functions ============
