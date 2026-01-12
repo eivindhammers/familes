@@ -23,6 +23,45 @@ window.getTodayString = () => {
 };
 
 /**
+ * Get current month in YYYY-MM format
+ * @returns {string} Current month as YYYY-MM string
+ */
+window.getCurrentMonth = () => {
+  const today = new Date();
+  return today.toISOString().substring(0, 7); // YYYY-MM
+};
+
+/**
+ * Get a list of available months for historical view
+ * Returns months from December 2025 onwards (when monthly competition started)
+ * @returns {Array<{value: string, label: string}>} Array of month options
+ */
+window.getAvailableMonths = () => {
+  const months = [];
+  const today = new Date();
+  const { COMPETITION_START_MONTH } = window.APP_CONSTANTS;
+  
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthValue = date.toISOString().substring(0, 7);
+    
+    // Only include months from competition start onwards
+    if (monthValue < COMPETITION_START_MONTH) {
+      break;
+    }
+    
+    // Format as "Month Year" for display
+    const monthNames = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 
+                       'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];
+    const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    
+    months.push({ value: monthValue, label: monthLabel });
+  }
+  
+  return months;
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)
@@ -121,6 +160,26 @@ window.getLeaderboard = (users, leagueId = null, leagueLeaderboard = null) => {
   // Otherwise return global leaderboard
   return Object.values(users)
     .sort((a, b) => getUserXP(b) - getUserXP(a))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
+};
+
+/**
+ * Generate monthly leaderboard with rankings
+ * Rankings are based on monthlyXP for the specified month
+ * @param {Object} leagueLeaderboard - League leaderboard data
+ * @param {string} targetMonth - Target month in YYYY-MM format (defaults to current month)
+ * @returns {Array} Sorted array of users with rank property
+ */
+window.getMonthlyLeaderboard = (leagueLeaderboard, targetMonth = null) => {
+  const month = targetMonth || window.getCurrentMonth();
+  
+  return Object.values(leagueLeaderboard)
+    .map(user => ({
+      ...user,
+      // Reset monthly XP if user's month doesn't match target month
+      monthlyXP: user.currentMonth === month ? (user.monthlyXP || 0) : 0
+    }))
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0))
     .map((user, index) => ({ ...user, rank: index + 1 }));
 };
 

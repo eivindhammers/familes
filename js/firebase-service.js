@@ -218,12 +218,106 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
     name: profile.name,
     totalPages: profile.totalPages,
     totalXP: getUserXP(profile),
+    monthlyXP: profile.monthlyXP || 0,
+    currentMonth: profile.currentMonth || window.getCurrentMonth(),
     level: profile.level,
     currentStreak: profile.currentStreak,
     longestStreak: profile.longestStreak
   };
   
   await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set(leaderboardData);
+};
+
+/**
+ * Helper function to get last month in YYYY-MM format
+ * @returns {string} Last month as YYYY-MM string
+ */
+window.getLastMonth = () => {
+  const today = new Date();
+  // Get year and month, then subtract 1 from month
+  let year = today.getFullYear();
+  let month = today.getMonth(); // 0-11
+  
+  // If January, go to December of previous year
+  if (month === 0) {
+    year -= 1;
+    month = 11;
+  } else {
+    month -= 1;
+  }
+  
+  // Format as YYYY-MM
+  return `${year}-${String(month + 1).padStart(2, '0')}`;
+};
+
+/**
+ * Get and update monthly winner for a league
+ * @param {string} leagueId - League ID
+ * @param {Object} leagueLeaderboard - Current league leaderboard data
+ * @returns {Promise<Object>} Object with winner info and whether it's newly determined
+ */
+window.determineMonthlyWinner = async (leagueId, leagueLeaderboard) => {
+  const { database, getCurrentMonth, getMonthlyLeaderboard, getLastMonth } = window;
+  
+  const currentMonth = getCurrentMonth();
+  const lastMonth = getLastMonth();
+  
+  // Get stored monthly winner data
+  const winnerSnapshot = await database.ref(`leagues/${leagueId}/monthlyWinners/${lastMonth}`).once('value');
+  const existingWinner = winnerSnapshot.val();
+  
+  // If we already have a winner for last month, return it
+  if (existingWinner) {
+    return { winner: existingWinner, isNew: false };
+  }
+  
+  // Otherwise, determine the winner from leaderboard data
+  // Find users who have the correct month and get the top one
+  const usersLastMonth = Object.values(leagueLeaderboard || {})
+    .filter(user => user.currentMonth === lastMonth)
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0));
+  
+  if (usersLastMonth.length === 0 || (usersLastMonth[0].monthlyXP || 0) === 0) {
+    return { winner: null, isNew: false };
+  }
+  
+  const winner = {
+    profileId: usersLastMonth[0].id,
+    name: usersLastMonth[0].name,
+    monthlyXP: usersLastMonth[0].monthlyXP,
+    month: lastMonth,
+    rewardClaimed: false
+  };
+  
+  // Store the winner
+  await database.ref(`leagues/${leagueId}/monthlyWinners/${lastMonth}`).set(winner);
+  
+  return { winner, isNew: true };
+};
+
+/**
+ * Claim monthly winner reward
+ * @param {string} leagueId - League ID
+ * @param {string} month - Month in YYYY-MM format
+ * @param {string} profileId - Winner's profile ID
+ * @param {number} rewardXP - Amount of XP to award
+ * @returns {Promise<boolean>} True if reward was claimed successfully
+ */
+window.claimMonthlyReward = async (leagueId, month, profileId, rewardXP) => {
+  const { database } = window;
+  
+  // Check if reward was already claimed
+  const winnerSnapshot = await database.ref(`leagues/${leagueId}/monthlyWinners/${month}`).once('value');
+  const winner = winnerSnapshot.val();
+  
+  if (!winner || winner.profileId !== profileId || winner.rewardClaimed) {
+    return false;
+  }
+  
+  // Mark reward as claimed
+  await database.ref(`leagues/${leagueId}/monthlyWinners/${month}/rewardClaimed`).set(true);
+  
+  return true;
 };
 
 /**
@@ -448,4 +542,90 @@ window.deleteAllProfiles = async (uid, profiles) => {
   }
   
   await database.ref().update(updates);
+};
+
+/**
+ * Calculate monthly XP from reading history for a specific month
+ * @param {string} profileId - Profile ID
+ * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2026-01")
+ * @returns {Promise<number>} Total XP earned in that month
+ */
+window.calculateMonthlyXPFromHistory = async (profileId, targetMonth) => {
+  const { database } = window;
+  
+  // Load all reading history for this profile
+  const snapshot = await database.ref(`readingHistory/${profileId}`).once('value');
+  const historyData = snapshot.val();
+  
+  if (!historyData) {
+    return 0;
+  }
+  
+  let totalMonthlyXP = 0;
+  
+  // Iterate through all books and their reading entries
+  Object.values(historyData).forEach(bookEntries => {
+    // Ensure bookEntries is an object before trying to iterate
+    if (bookEntries && typeof bookEntries === 'object') {
+      Object.values(bookEntries).forEach(entry => {
+        // Check if entry is an object with the required fields
+        if (entry && typeof entry === 'object' && entry.timestamp && entry.xpEarned) {
+          // Validate timestamp is a string with sufficient length
+          if (typeof entry.timestamp === 'string' && entry.timestamp.length >= 7) {
+            const entryMonth = entry.timestamp.substring(0, 7); // Extract YYYY-MM
+            if (entryMonth === targetMonth) {
+              // Validate xpEarned is a number before adding
+              const xp = typeof entry.xpEarned === 'number' ? entry.xpEarned : 0;
+              totalMonthlyXP += xp;
+            }
+          }
+        }
+      });
+    }
+  });
+  
+  return totalMonthlyXP;
+};
+
+/**
+ * Generate historical monthly leaderboard for a specific month
+ * Calculates monthly XP from reading history for all league members
+ * @param {string} leagueId - League ID
+ * @param {string} targetMonth - Month in YYYY-MM format (e.g., "2026-01")
+ * @param {Object} leagueData - League data with members
+ * @param {Object} allUsers - All users data
+ * @returns {Promise<Array>} Sorted array of users with monthly XP and rank
+ */
+window.generateHistoricalMonthlyLeaderboard = async (leagueId, targetMonth, leagueData, allUsers) => {
+  const { calculateMonthlyXPFromHistory } = window;
+  
+  if (!leagueData || !leagueData.members || !allUsers) {
+    return [];
+  }
+  
+  const memberIds = Object.keys(leagueData.members);
+  const leaderboardPromises = memberIds.map(async (profileId) => {
+    const user = allUsers[profileId];
+    if (!user) return null;
+    
+    const monthlyXP = await calculateMonthlyXPFromHistory(profileId, targetMonth);
+    
+    return {
+      id: profileId,
+      name: user.name,
+      monthlyXP: monthlyXP,
+      totalXP: user.totalXP || 0,
+      level: user.level || 1,
+      currentStreak: user.currentStreak || 0,
+      longestStreak: user.longestStreak || 0,
+      currentMonth: targetMonth
+    };
+  });
+  
+  const results = await Promise.all(leaderboardPromises);
+  
+  return results
+    .filter(user => user !== null)
+    .sort((a, b) => (b.monthlyXP || 0) - (a.monthlyXP || 0))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
 };

@@ -1,7 +1,7 @@
 /**
  * Leaderboard Component
- * Displays ranked list of all users by total XP
- * Supports filtering by league
+ * Displays ranked list of all users by total XP or monthly XP
+ * Supports filtering by league and viewing historical monthly competition results
  */
 
 window.Leaderboard = ({ 
@@ -14,8 +14,20 @@ window.Leaderboard = ({
   darkMode
 }) => {
   const { Flame } = window.Icons;
-  const { getLeaderboard, getUserXP, getCardClassName, getTextClassName } = window;
-  const { useEffect } = React;
+  const { getLeaderboard, getMonthlyLeaderboard, getUserXP, getCardClassName, getTextClassName, 
+          getCurrentMonth, getAvailableMonths } = window;
+  const { generateHistoricalMonthlyLeaderboard } = window;
+  const { useEffect, useState } = React;
+  
+  // State for leaderboard type (total or monthly)
+  const [leaderboardType, setLeaderboardType] = useState('total');
+  
+  // State for selected month
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  
+  // State for historical leaderboard data
+  const [historicalLeaderboard, setHistoricalLeaderboard] = useState(null);
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false);
   
   // Get leagues that current profile is a member of
   const userLeagues = leagues && currentProfile.leagues 
@@ -29,10 +41,40 @@ window.Leaderboard = ({
     }
   }, [userLeagues.length, currentLeagueId, setCurrentLeagueId]);
   
+  // Load historical data when month or league changes
+  useEffect(() => {
+    const loadHistoricalData = async () => {
+      if (leaderboardType === 'monthly' && selectedMonth !== getCurrentMonth() && currentLeagueId) {
+        setIsLoadingHistorical(true);
+        const currentLeague = leagues && leagues[currentLeagueId];
+        if (currentLeague) {
+          const historical = await generateHistoricalMonthlyLeaderboard(
+            currentLeagueId, 
+            selectedMonth, 
+            currentLeague,
+            users
+          );
+          setHistoricalLeaderboard(historical);
+        }
+        setIsLoadingHistorical(false);
+      } else {
+        setHistoricalLeaderboard(null);
+      }
+    };
+    
+    loadHistoricalData();
+  }, [leaderboardType, selectedMonth, currentLeagueId, leagues, users]);
+  
   // Determine which leaderboard to show
   const leaderboardData = currentLeagueId && leagueLeaderboard
-    ? getLeaderboard(null, currentLeagueId, leagueLeaderboard)
+    ? (leaderboardType === 'monthly' 
+        ? (selectedMonth === getCurrentMonth() 
+            ? getMonthlyLeaderboard(leagueLeaderboard, selectedMonth)
+            : (historicalLeaderboard || []))
+        : getLeaderboard(null, currentLeagueId, leagueLeaderboard))
     : [];
+
+  const availableMonths = getAvailableMonths();
 
   return (
     <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
@@ -71,6 +113,74 @@ window.Leaderboard = ({
             )}
           </select>
         </div>
+        
+        {/* Leaderboard Type Toggle */}
+        {currentLeagueId && userLeagues.length > 0 && (
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
+              Velg rangering
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLeaderboardType('total')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  leaderboardType === 'total'
+                    ? darkMode
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-indigo-500 text-white'
+                    : darkMode
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Totalt XP
+              </button>
+              <button
+                onClick={() => setLeaderboardType('monthly')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  leaderboardType === 'monthly'
+                    ? darkMode
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-indigo-500 text-white'
+                    : darkMode
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Månedens XP
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Month Selector - only show when monthly view is selected */}
+        {currentLeagueId && userLeagues.length > 0 && leaderboardType === 'monthly' && (
+          <div className="mb-4">
+            <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
+              Velg måned
+            </label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className={`max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                darkMode 
+                  ? 'bg-gray-700 text-white border-gray-600' 
+                  : 'border-gray-300'
+              }`}
+            >
+              {availableMonths.map(month => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+            {isLoadingHistorical && (
+              <div className={`mt-2 text-sm ${getTextClassName(darkMode, 'muted')}`}>
+                Laster historikk...
+              </div>
+            )}
+          </div>
+        )}
         
         {/* Message if not in any leagues */}
         {userLeagues.length === 0 && (
@@ -122,7 +232,9 @@ window.Leaderboard = ({
                 </div>
               </div>
               <div className="text-right">
-                <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{getUserXP(user)}</div>
+                <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                  {leaderboardType === 'monthly' ? (user.monthlyXP || 0) : getUserXP(user)}
+                </div>
                 <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>XP</div>
               </div>
             </div>
