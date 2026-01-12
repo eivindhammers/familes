@@ -25,6 +25,25 @@ window.saveUserToGlobalList = async (profileId, userData) => {
 };
 
 /**
+ * Update specific profile fields in both user profiles and global users list
+ * @param {string} uid - Firebase auth user ID
+ * @param {string} profileId - Profile identifier
+ * @param {Object} updates - Object with fields to update
+ */
+window.updateProfileFields = async (uid, profileId, updates) => {
+  const { database } = window;
+  const updateObj = {};
+  
+  // Update in user profiles
+  Object.keys(updates).forEach(key => {
+    updateObj[`userProfiles/${uid}/${profileId}/${key}`] = updates[key];
+    updateObj[`users/${profileId}/${key}`] = updates[key];
+  });
+  
+  await database.ref().update(updateObj);
+};
+
+/**
  * Save books array to Firebase
  * @param {string} profileId - Profile identifier
  * @param {Array} booksArray - Array of book objects

@@ -16,6 +16,7 @@ const {
   // Firebase services
   saveProfile,
   saveUserToGlobalList,
+  updateProfileFields,
   saveBooks,
   saveReadingEntry,
   loadUserProfiles,
@@ -45,6 +46,7 @@ const {
   searchGoogleBooks,
   // Hooks
   useStreakCalculation,
+  checkAndResetStreak,
   // Components
   AuthScreen,
   ProfileSelector,
@@ -690,6 +692,30 @@ const BookContestApp = () => {
       });
     }
   }, [currentProfile]);
+
+  // Check and reset streak when profile is loaded
+  useEffect(() => {
+    const checkStreak = async () => {
+      if (currentProfile && authUser) {
+        const streakUpdate = checkAndResetStreak(currentProfile);
+        if (streakUpdate) {
+          // Update both local state and database
+          try {
+            await updateProfileFields(authUser.uid, currentProfile.id, streakUpdate);
+            // Update local state
+            setCurrentProfile(prev => ({
+              ...prev,
+              ...streakUpdate
+            }));
+          } catch (err) {
+            console.error('Failed to update streak:', err);
+          }
+        }
+      }
+    };
+    
+    checkStreak();
+  }, [currentProfile?.id, authUser?.uid]);
 
   // Reset friendships and league selection when profile changes
   useEffect(() => {

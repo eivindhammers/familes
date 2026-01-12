@@ -4,6 +4,43 @@
  */
 
 /**
+ * Check and update streak status based on last read date
+ * This function is called when a profile is loaded to ensure streaks are current
+ * @param {Object} profile - Current profile object
+ * @returns {Object|null} Updated streak data if changes needed, null otherwise
+ */
+window.checkAndResetStreak = (profile) => {
+  const { getTodayString } = window;
+  
+  const today = getTodayString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayString = yesterday.toISOString().split('T')[0];
+  
+  const lastReadDate = profile.lastReadDate || null;
+  const currentStreak = profile.currentStreak || 0;
+  const pagesReadToday = profile.pagesReadToday || 0;
+  
+  // Check if streak should be reset (user missed yesterday)
+  // Streak is lost if lastReadDate is before yesterday
+  if (lastReadDate && lastReadDate < yesterdayString && currentStreak > 0) {
+    return {
+      currentStreak: 0,
+      pagesReadToday: 0
+    };
+  }
+  
+  // Reset pagesReadToday if it's a new day (but keep streak intact if it was yesterday)
+  if (lastReadDate && lastReadDate !== today && pagesReadToday > 0) {
+    return {
+      pagesReadToday: 0
+    };
+  }
+  
+  return null;
+};
+
+/**
  * Hook for streak calculation and update logic
  * Streaks are based on pages read (not XP earned) to encourage actual reading
  * @param {Object} profile - Current profile object
