@@ -220,7 +220,8 @@ window.updateLeagueLeaderboard = async (leagueId, profileId, profile) => {
     totalXP: getUserXP(profile),
     level: profile.level,
     currentStreak: profile.currentStreak,
-    longestStreak: profile.longestStreak
+    longestStreak: profile.longestStreak,
+    lastReadDate: profile.lastReadDate || null
   };
   
   await database.ref(`leagueLeaderboards/${leagueId}/${profileId}`).set(leaderboardData);

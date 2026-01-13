@@ -23,6 +23,31 @@ window.getTodayString = () => {
 };
 
 /**
+ * Get the validated current streak for a user/profile
+ * Returns 0 if the user hasn't read since before yesterday (streak is broken)
+ * @param {Object} user - User or profile object with currentStreak and lastReadDate
+ * @returns {number} Validated streak value
+ */
+window.getValidatedStreak = (user) => {
+  if (!user || !user.currentStreak || !user.lastReadDate) {
+    return 0;
+  }
+
+  const today = window.getTodayString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayString = yesterday.toISOString().split('T')[0];
+
+  // Streak is valid only if user read today or yesterday
+  if (user.lastReadDate === today || user.lastReadDate === yesterdayString) {
+    return user.currentStreak;
+  }
+
+  // Streak is broken - they haven't read since before yesterday
+  return 0;
+};
+
+/**
  * Calculate cumulative XP needed to reach a specific level
  * Uses non-linear formula: each level requires XP_BASE * (XP_MULTIPLIER ^ (level-2))
  * @param {number} level - Target level (minimum 1)

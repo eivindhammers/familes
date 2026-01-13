@@ -14,7 +14,7 @@ window.Leaderboard = ({
   darkMode
 }) => {
   const { Flame } = window.Icons;
-  const { getLeaderboard, getUserXP, getCardClassName, getTextClassName } = window;
+  const { getLeaderboard, getUserXP, getCardClassName, getTextClassName, getValidatedStreak } = window;
   const { useEffect } = React;
   
   // Get leagues that current profile is a member of
@@ -111,10 +111,10 @@ window.Leaderboard = ({
                 <div>
                   <div className={`font-semibold flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                     {user.name}
-                    {user.currentStreak > 0 && (
+                    {getValidatedStreak(user) > 0 && (
                       <span className="flex items-center gap-1 text-orange-500 text-sm">
                         <Flame className="w-4 h-4" />
-                        {user.currentStreak}
+                        {getValidatedStreak(user)}
                       </span>
                     )}
                   </div>

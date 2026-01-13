@@ -19,7 +19,7 @@ window.FriendsManager = ({
 }) => {
   const { useState, useEffect } = React;
   const { Flame, Plus, Trash2 } = window.Icons;
-  const { loadProfileBooksOnce, searchUsersByName, getUserXP, getInputClassName, getErrorClassName, getSuccessClassName, getCardClassName, getTextClassName, UserAvatar } = window;
+  const { loadProfileBooksOnce, searchUsersByName, getUserXP, getInputClassName, getErrorClassName, getSuccessClassName, getCardClassName, getTextClassName, UserAvatar, getValidatedStreak } = window;
   
   // Tab state: 'friends', 'requests', 'find'
   const [activeSubTab, setActiveSubTab] = useState('friends');
@@ -193,10 +193,10 @@ window.FriendsManager = ({
                         <div>
                           <div className={`font-semibold flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                             {friend.name}
-                            {friend.currentStreak > 0 && (
+                            {getValidatedStreak(friend) > 0 && (
                               <span className="flex items-center gap-1 text-orange-500 text-sm">
                                 <Flame className="w-4 h-4" />
-                                {friend.currentStreak}
+                                {getValidatedStreak(friend)}
                               </span>
                             )}
                           </div>
@@ -392,10 +392,10 @@ window.FriendsManager = ({
                     <div>
                       <div className={`font-medium flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
                         {user.name}
-                        {user.currentStreak > 0 && (
+                        {getValidatedStreak(user) > 0 && (
                           <span className="flex items-center gap-1 text-orange-500 text-xs">
                             <Flame className="w-3 h-3" />
-                            {user.currentStreak}
+                            {getValidatedStreak(user)}
                           </span>
                         )}
                       </div>

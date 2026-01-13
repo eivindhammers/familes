@@ -22,7 +22,7 @@ window.ProfileHeader = ({
 }) => {
   const { useState, useRef, useEffect } = React;
   const { BookOpen, LogOut, Flame, Bell, Check, X, Moon, Sun } = window.Icons;
-  const { getCardClassName, getTextClassName, UserAvatar } = window;
+  const { getCardClassName, getTextClassName, UserAvatar, getValidatedStreak } = window;
   
   // Notification dropdown state
   const [showNotifications, setShowNotifications] = useState(false);
@@ -255,8 +255,8 @@ window.ProfileHeader = ({
             : 'bg-gradient-to-br from-orange-50 to-red-50'
         }`}>
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Flame className={`w-6 h-6 ${currentProfile.currentStreak > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <span className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.currentStreak || 0}</span>
+            <Flame className={`w-6 h-6 ${getValidatedStreak(currentProfile) > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+            <span className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{getValidatedStreak(currentProfile)}</span>
           </div>
           <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Daglig streak</div>
         </div>
