@@ -413,7 +413,7 @@ const BookContestApp = () => {
     const wasStreakActive = currentProfile.currentStreak > 0;
     
     // Calculate xpEarnedToday
-    const { getTodayString } = window;
+    const { getTodayString, getCurrentMonth, backfillCurrentMonthXP } = window;
     const today = getTodayString();
     let xpEarnedToday = currentProfile.xpEarnedToday || 0;
     if (currentProfile.lastReadDate === today) {
@@ -421,13 +421,28 @@ const BookContestApp = () => {
     } else {
       xpEarnedToday = xpFromPages;
     }
-    
+
+    // Calculate monthlyXP for monthly competition
+    const currentMonth = getCurrentMonth();
+    let monthlyXP = currentProfile.monthlyXP || 0;
+
+    // Check if month has changed or if this is first time tracking monthly XP
+    if (currentProfile.currentMonth !== currentMonth) {
+      // Backfill from reading history for mid-month deployment handling
+      monthlyXP = await backfillCurrentMonthXP(currentProfile.id);
+    }
+
+    // Add XP from this reading session to monthly total
+    monthlyXP += xpFromPages;
+
     const updatedProfile = {
       ...currentProfile,
       totalPages: totalPagesAcrossAllBooks,
       totalXP: newTotalXP,
       xpEarnedToday: xpEarnedToday,
       level: newLevel,
+      monthlyXP: monthlyXP,
+      currentMonth: currentMonth,
       ...streakData
     };
 
