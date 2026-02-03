@@ -16,7 +16,8 @@ window.ProfileSelector = ({
   handleSetMainProfile,
   handleDeleteUser,
   error,
-  setError
+  setError,
+  currentProfileId
 }) => {
   const { Plus, Trash2, Check } = window.Icons;
   const [showManageMode, setShowManageMode] = React.useState(false);
@@ -54,12 +55,13 @@ window.ProfileSelector = ({
           {profiles.map(profile => (
             <div
               key={profile.id}
-              className={`relative p-6 border-2 rounded-lg transition text-left ${
-                profile.isMainAccount 
-                  ? 'border-indigo-400 bg-indigo-50' 
-                  : 'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50'
-              }`}
+              className="relative p-6 border-2 rounded-lg transition text-left border-gray-200 hover:border-indigo-500 hover:bg-indigo-50"
             >
+              {currentProfileId === profile.id && (
+                <span className="absolute top-2 left-2 text-xs bg-green-500 text-white px-2 py-1 rounded">
+                  Aktiv
+                </span>
+              )}
               {profile.isMainAccount && (
                 <span className="absolute top-2 right-2 text-xs bg-indigo-500 text-white px-2 py-1 rounded">
                   Hovedprofil

@@ -75,6 +75,7 @@ const BookContestApp = () => {
   
   // Profile state
   const [currentProfile, setCurrentProfile] = useState(null);
+  const [previousProfileId, setPreviousProfileId] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [showProfileManager, setShowProfileManager] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
@@ -284,8 +285,14 @@ const BookContestApp = () => {
 
   const switchProfile = (profile) => {
     setCurrentProfile(profile);
+    setPreviousProfileId(profile?.id || null);
     setShowProfileManager(false);
     setActiveTab('myBooks');
+  };
+
+  const handleSwitchProfile = () => {
+    setPreviousProfileId(currentProfile?.id || null);
+    setCurrentProfile(null);
   };
 
   // Profile management handlers
@@ -391,7 +398,7 @@ const BookContestApp = () => {
     const updatedBooks = books.map(book => {
       if (book.id === bookId) {
         const total = book.totalPages > 0 ? Math.min(newTotalRead, book.totalPages) : newTotalRead;
-        return { ...book, pagesRead: total };
+        return { ...book, pagesRead: total, lastReadAt: new Date().toISOString() };
       }
       return book;
     });
@@ -760,6 +767,7 @@ const BookContestApp = () => {
         handleDeleteUser={handleDeleteUser}
         error={error}
         setError={setError}
+        currentProfileId={previousProfileId}
       />
     );
   }
@@ -781,7 +789,7 @@ const BookContestApp = () => {
       <div className="max-w-6xl mx-auto p-4">
         <ProfileHeader
           currentProfile={currentProfile}
-          setCurrentProfile={setCurrentProfile}
+          onSwitchProfile={handleSwitchProfile}
           handleLogout={handleLogout}
           showStreakMessage={showStreakMessage}
           progress={progress}
