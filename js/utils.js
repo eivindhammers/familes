@@ -229,3 +229,93 @@ window.getTextClassName = (darkMode, type = 'body') => {
   };
   return styles[type] || styles.body;
 };
+
+// ============================================
+// Monthly Competition Utilities
+// ============================================
+
+/**
+ * Get current month in YYYY-MM format
+ * @returns {string} Current month (e.g., "2026-01")
+ */
+window.getCurrentMonth = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+/**
+ * Get array of available competition months from start to current
+ * @returns {Array<string>} Array of month strings in YYYY-MM format
+ */
+window.getAvailableCompetitionMonths = () => {
+  const { COMPETITION_START_MONTH } = window.APP_CONSTANTS;
+  const currentMonth = window.getCurrentMonth();
+
+  const months = [];
+  const [startYear, startMonthNum] = COMPETITION_START_MONTH.split('-').map(Number);
+  const [endYear, endMonthNum] = currentMonth.split('-').map(Number);
+
+  let year = startYear;
+  let month = startMonthNum;
+
+  while (year < endYear || (year === endYear && month <= endMonthNum)) {
+    months.push(`${year}-${String(month).padStart(2, '0')}`);
+    month++;
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
+  }
+
+  return months;
+};
+
+/**
+ * Format month string for display in Norwegian
+ * @param {string} monthString - Month in YYYY-MM format
+ * @returns {string} Formatted month (e.g., "Januar 2026")
+ */
+window.getMonthLabel = (monthString) => {
+  const monthNames = [
+    'Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni',
+    'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const [year, month] = monthString.split('-').map(Number);
+  return `${monthNames[month - 1]} ${year}`;
+};
+
+/**
+ * Get user's monthly XP, returning 0 if their stored month is stale
+ * @param {Object} user - User or profile object with monthlyXP and currentMonth
+ * @returns {number} Monthly XP (0 if month is stale)
+ */
+window.getUserMonthlyXP = (user) => {
+  const currentMonth = window.getCurrentMonth();
+
+  // If user's stored month matches current month, return their monthlyXP
+  if (user?.currentMonth === currentMonth) {
+    return user?.monthlyXP ?? 0;
+  }
+
+  // Month is stale - user hasn't read this month yet
+  return 0;
+};
+
+/**
+ * Generate monthly leaderboard from league data (current month only)
+ * For historical months, use loadHistoricalMonthlyLeaderboard instead
+ * @param {Object} leagueLeaderboard - League leaderboard data
+ * @returns {Array} Sorted array of users with rank property
+ */
+window.getMonthlyLeaderboard = (leagueLeaderboard) => {
+  const { getUserMonthlyXP } = window;
+
+  if (!leagueLeaderboard) return [];
+
+  return Object.values(leagueLeaderboard)
+    .sort((a, b) => getUserMonthlyXP(b) - getUserMonthlyXP(a))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
+};
