@@ -80,13 +80,6 @@ window.Leaderboard = ({
     }
   }, [viewMode, selectedMonth, currentLeagueId, leagues, isCurrentMonth]);
 
-  // Reset selected month to current when switching to monthly view
-  useEffect(() => {
-    if (viewMode === 'monthly') {
-      setSelectedMonth(getCurrentMonth());
-    }
-  }, [viewMode]);
-
   // Determine which leaderboard data to show
   const getLeaderboardData = () => {
     if (!currentLeagueId || !leagueLeaderboard) {

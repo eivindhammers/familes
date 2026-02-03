@@ -602,14 +602,14 @@ window.getMonthlyWinner = async (leagueId, month, members) => {
 /**
  * Award XP bonus to a winner
  * Bonus goes to totalXP only, NOT to monthlyXP
- * @param {string} uid - Firebase auth user ID
+ * Only updates the global user list - the winner's private profile syncs on next login
  * @param {string} profileId - Profile ID
  * @param {Object} profile - Current profile data
  * @param {number} bonusXP - Amount of XP to award
  * @returns {Promise<Object>} Updated profile
  */
-window.awardWinnerBonus = async (uid, profileId, profile, bonusXP) => {
-  const { saveProfile, saveUserToGlobalList, getLevelFromXP, getUserXP } = window;
+window.awardWinnerBonus = async (profileId, profile, bonusXP) => {
+  const { saveUserToGlobalList, getLevelFromXP, getUserXP } = window;
 
   const currentTotalXP = getUserXP(profile);
   const newTotalXP = currentTotalXP + bonusXP;
@@ -622,7 +622,6 @@ window.awardWinnerBonus = async (uid, profileId, profile, bonusXP) => {
     // Note: monthlyXP is NOT updated - bonus doesn't count toward monthly competition
   };
 
-  await saveProfile(uid, profileId, updatedProfile);
   await saveUserToGlobalList(profileId, updatedProfile);
 
   return updatedProfile;
@@ -677,10 +676,9 @@ window.isWinnerAwarded = async (leagueId, month) => {
  * Call this to determine winner and award bonus XP
  * @param {string} leagueId - League ID
  * @param {string} month - Month in YYYY-MM format (must be a past month)
- * @param {string} uid - Firebase auth user ID (for saving profile updates)
  * @returns {Promise<Object>} Result with winner info or error
  */
-window.processMonthlyWinner = async (leagueId, month, uid) => {
+window.processMonthlyWinner = async (leagueId, month) => {
   const {
     database,
     isWinnerAwarded,
@@ -727,7 +725,7 @@ window.processMonthlyWinner = async (leagueId, month, uid) => {
   }
 
   // Award bonus XP (adds to totalXP, not monthlyXP)
-  await awardWinnerBonus(uid, winner.id, profile, MONTHLY_WINNER_BONUS_XP);
+  await awardWinnerBonus(winner.id, profile, MONTHLY_WINNER_BONUS_XP);
 
   // Record the winner
   await saveMonthlyWinner(leagueId, month, winner.id, MONTHLY_WINNER_BONUS_XP);
