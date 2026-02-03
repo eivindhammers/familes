@@ -16,6 +16,24 @@ window.BookList = ({
   const { BookOpen, TrendingUp, Trash2 } = window.Icons;
   const { getCardClassName, getTextClassName, getInputClassName } = window;
 
+  // Sort books: newly added (unread) at top by startedAt desc, then by lastReadAt desc
+  const sortedBooks = [...books].sort((a, b) => {
+    const aIsUnread = !a.pagesRead || a.pagesRead === 0;
+    const bIsUnread = !b.pagesRead || b.pagesRead === 0;
+
+    // Unread books come first
+    if (aIsUnread && !bIsUnread) return -1;
+    if (!aIsUnread && bIsUnread) return 1;
+
+    // Both unread: sort by startedAt desc (newest first)
+    if (aIsUnread && bIsUnread) {
+      return new Date(b.startedAt || 0) - new Date(a.startedAt || 0);
+    }
+
+    // Both have pages read: sort by lastReadAt desc (most recently read first)
+    return new Date(b.lastReadAt || b.startedAt || 0) - new Date(a.lastReadAt || a.startedAt || 0);
+  });
+
   return (
     <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
       <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>Min leseliste</h2>
@@ -35,7 +53,7 @@ window.BookList = ({
         <p className={`text-center py-8 ${getTextClassName(darkMode, 'muted')}`}>Ingen bøker ennå. Legg til din første bok ovenfor!</p>
       ) : (
         <div className="space-y-4">
-          {books.map(book => (
+          {sortedBooks.map(book => (
             <div key={book.id} className={`border rounded-lg p-4 flex gap-4 ${
               darkMode 
                 ? 'border-gray-700 bg-gray-700' 
