@@ -56,39 +56,39 @@ window.ProfileHeader = ({
 
   return (
     <div className={`rounded-lg shadow-md p-4 sm:p-6 mb-6 transition-colors ${getCardClassName(darkMode)}`}>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
-          <div>
-            <h1 className={`text-xl sm:text-3xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</h1>
+      <div className="flex justify-between items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <BookOpen className={`w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
+          <div className="min-w-0">
+            <h1 className={`text-lg sm:text-3xl font-bold truncate ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</h1>
             <p className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>FamiLes 2026</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition flex items-center gap-1 ${
-              darkMode 
-                ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' 
+            className={`min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center sm:px-4 sm:py-2 text-sm rounded-lg transition ${
+              darkMode
+                ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
             title={darkMode ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
           >
-            {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
-          
+
           {/* Notification Button */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className={`relative px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition flex items-center gap-1 ${
-                darkMode 
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+              className={`relative min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center sm:px-4 sm:py-2 text-sm rounded-lg transition ${
+                darkMode
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Bell className="w-5 h-5" />
               {totalNotifications > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                   {totalNotifications}
@@ -98,7 +98,7 @@ window.ProfileHeader = ({
             
             {/* Notification Dropdown */}
             {showNotifications && (
-              <div className={`absolute left-0 sm:left-auto sm:right-0 mt-2 w-80 rounded-lg shadow-lg border z-50 ${
+              <div className={`absolute right-0 sm:left-auto mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-lg shadow-lg border z-50 ${
                 darkMode 
                   ? 'bg-gray-800 border-gray-700' 
                   : 'bg-white border-gray-200'
@@ -186,24 +186,27 @@ window.ProfileHeader = ({
           
           <button
             onClick={onSwitchProfile}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition ${
+            className={`min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center sm:px-4 sm:py-2 text-sm rounded-lg transition ${
               darkMode
                 ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            title="Bytt profil"
           >
-            Bytt profil
+            <span className="hidden sm:inline">Bytt profil</span>
+            <span className="sm:hidden text-xs">Profil</span>
           </button>
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm transition ${
-              darkMode 
-                ? 'text-gray-300 hover:text-white' 
+            className={`min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center sm:gap-2 sm:px-4 sm:py-2 text-sm transition ${
+              darkMode
+                ? 'text-gray-300 hover:text-white'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            title="Logg ut"
           >
-            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            Logg ut
+            <LogOut className="w-5 h-5" />
+            <span className="hidden sm:inline">Logg ut</span>
           </button>
         </div>
       </div>
@@ -219,64 +222,70 @@ window.ProfileHeader = ({
         </div>
       )}
       
-      <div className={`rounded-lg p-6 mb-4 ${
-        darkMode 
-          ? 'bg-gradient-to-r from-indigo-900 to-purple-900' 
+      <div className={`rounded-lg p-4 sm:p-6 mb-4 ${
+        darkMode
+          ? 'bg-gradient-to-r from-indigo-900 to-purple-900'
           : 'bg-gradient-to-r from-indigo-50 to-purple-50'
       }`}>
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-between items-center mb-2 sm:mb-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <UserAvatar name={currentProfile.name} size="lg" />
             <div>
-              <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Aktiv profil</div>
-              <div className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</div>
+              <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>Aktiv profil</div>
+              <div className={`text-lg sm:text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.name}</div>
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Level</div>
-            <div className={`text-4xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{currentProfile.level}</div>
+            <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>Level</div>
+            <div className={`text-3xl sm:text-4xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{currentProfile.level}</div>
           </div>
         </div>
-        <div className={`w-full rounded-full h-4 mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+        <div className={`w-full rounded-full h-3 sm:h-4 mb-1.5 sm:mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
           <div
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 sm:h-4 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className={`text-sm text-center ${getTextClassName(darkMode, 'body')}`}>
+        <div className={`text-xs sm:text-sm text-center ${getTextClassName(darkMode, 'body')}`}>
           {xpProgress.currentXP} / {xpProgress.neededXP} XP til Level {currentProfile.level + 1}
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-4">
-        <div className={`rounded-lg p-4 text-center ${
-          darkMode 
-            ? 'bg-gradient-to-br from-orange-900 to-red-900' 
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
+          darkMode
+            ? 'bg-gradient-to-br from-orange-900 to-red-900'
             : 'bg-gradient-to-br from-orange-50 to-red-50'
         }`}>
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Flame className={`w-6 h-6 ${getValidatedStreak(currentProfile) > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <span className={`text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{getValidatedStreak(currentProfile)}</span>
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+            <Flame className={`w-5 h-5 sm:w-6 sm:h-6 ${getValidatedStreak(currentProfile) > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+            <span className={`text-xl sm:text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{getValidatedStreak(currentProfile)}</span>
           </div>
-          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Daglig streak</div>
+          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>Streak</div>
         </div>
-        
-        <div className={`rounded-lg p-4 text-center ${
-          darkMode 
-            ? 'bg-gradient-to-br from-yellow-900 to-orange-900' 
+
+        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
+          darkMode
+            ? 'bg-gradient-to-br from-yellow-900 to-orange-900'
             : 'bg-gradient-to-br from-yellow-50 to-orange-50'
         }`}>
-          <div className={`text-2xl font-bold mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.longestStreak || 0}</div>
-          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Beste streak</div>
+          <div className={`text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.longestStreak || 0}</div>
+          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>
+            <span className="sm:hidden">Rekord</span>
+            <span className="hidden sm:inline">Beste streak</span>
+          </div>
         </div>
-        
-        <div className={`rounded-lg p-4 text-center ${
-          darkMode 
-            ? 'bg-gradient-to-br from-green-900 to-emerald-900' 
+
+        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
+          darkMode
+            ? 'bg-gradient-to-br from-green-900 to-emerald-900'
             : 'bg-gradient-to-br from-green-50 to-emerald-50'
         }`}>
-          <div className={`text-2xl font-bold mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</div>
-          <div className={`text-sm ${getTextClassName(darkMode, 'body')}`}>Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</div>
+          <div className={`text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</div>
+          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>
+            <span className="sm:hidden">I dag</span>
+            <span className="hidden sm:inline">Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</span>
+          </div>
         </div>
       </div>
     </div>

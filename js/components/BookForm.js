@@ -19,7 +19,7 @@ window.BookForm = ({
   const { getInputClassName, getErrorClassName, getCardClassName, getTextClassName } = window;
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 ${getCardClassName(darkMode)}`}>
       <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>Legg til ny bok</h2>
       {error && (
         <div className={`border px-4 py-3 rounded mb-4 ${getErrorClassName(darkMode)}`}>
@@ -93,7 +93,7 @@ window.BookForm = ({
       </div>
       <button
         onClick={addBook}
-        className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 sm:py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
       >
         <Plus className="w-5 h-5" />
         Legg til bok

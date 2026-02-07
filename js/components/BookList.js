@@ -35,7 +35,7 @@ window.BookList = ({
   });
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 ${getCardClassName(darkMode)}`}>
       <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>Min leseliste</h2>
       {books.length > 0 && (
         <div className={`rounded-lg p-4 mb-4 flex items-center justify-between ${
@@ -109,21 +109,21 @@ window.BookList = ({
                       placeholder="Totalt lest..."
                       value={pageUpdate}
                       onChange={(e) => setPageUpdate(e.target.value)}
-                      className={`w-20 px-2 py-1 border rounded text-sm ${getInputClassName(darkMode)}`}
+                      className={`w-28 sm:w-20 px-3 py-2 sm:px-2 sm:py-1 border rounded text-sm ${getInputClassName(darkMode)}`}
                       autoFocus
                       onFocus={(e) => e.target.select()}
                     />
                     <button
                       onClick={() => updatePages(book.id)}
-                      className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                      className="px-4 py-2 sm:px-3 sm:py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
                     >
                       Lagre
                     </button>
                     <button
                       onClick={() => { setSelectedBook(null); setPageUpdate(''); }}
-                      className={`px-3 py-1 rounded text-sm ${
-                        darkMode 
-                          ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
+                      className={`px-4 py-2 sm:px-3 sm:py-1 rounded text-sm ${
+                        darkMode
+                          ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                           : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
                       }`}
                     >

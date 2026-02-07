@@ -25,7 +25,7 @@ window.LeagueManager = ({
     : [];
 
   return (
-    <div className={`rounded-lg shadow-md p-6 space-y-6 ${getCardClassName(darkMode)}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 space-y-6 ${getCardClassName(darkMode)}`}>
       <h2 className={`text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>Ligaadministrasjon</h2>
       
       {/* User's Leagues */}
