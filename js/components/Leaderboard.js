@@ -118,50 +118,50 @@ window.Leaderboard = ({
   };
 
   return (
-    <div className={`rounded-lg shadow-md p-6 ${getCardClassName(darkMode)}`}>
-      <div className="mb-4">
-        <h2 className={`text-xl font-bold mb-4 ${getTextClassName(darkMode, 'heading')}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 ${getCardClassName(darkMode)}`}>
+      <div className="mb-3 sm:mb-4">
+        <h2 className={`text-xl font-bold mb-3 ${getTextClassName(darkMode, 'heading')}`}>
           {currentLeagueId ? 'Liga ledertavle' : 'FamiLes ledertavle'}
         </h2>
 
-        {/* League Selector */}
-        <div className="mb-4">
-          <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
-            Velg liga
-          </label>
-          <select
-            value={currentLeagueId || ''}
-            onChange={(e) => setCurrentLeagueId(e.target.value || null)}
-            disabled={userLeagues.length === 0}
-            className={`max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-              userLeagues.length === 0
-                ? darkMode
-                  ? 'bg-gray-900 text-gray-500 cursor-not-allowed border-gray-700'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
-                : darkMode
-                  ? 'bg-gray-700 text-white border-gray-600'
-                  : 'bg-white text-gray-900 border-gray-300'
-            }`}
-          >
-            {userLeagues.length === 0 ? (
-              <option value="">Ingen ligaer</option>
-            ) : (
-              userLeagues.map(league => (
-                <option key={league.id} value={league.id}>
-                  {league.name}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
+        {/* League selector + View mode toggle in a compact row on mobile */}
+        <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4 mb-3">
+          <div className="flex-1">
+            <label className={`block text-xs sm:text-sm font-medium mb-1 ${getTextClassName(darkMode, 'body')}`}>
+              Liga
+            </label>
+            <select
+              value={currentLeagueId || ''}
+              onChange={(e) => setCurrentLeagueId(e.target.value || null)}
+              disabled={userLeagues.length === 0}
+              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                userLeagues.length === 0
+                  ? darkMode
+                    ? 'bg-gray-900 text-gray-500 cursor-not-allowed border-gray-700'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300'
+                  : darkMode
+                    ? 'bg-gray-700 text-white border-gray-600'
+                    : 'bg-white text-gray-900 border-gray-300'
+              }`}
+            >
+              {userLeagues.length === 0 ? (
+                <option value="">Ingen ligaer</option>
+              ) : (
+                userLeagues.map(league => (
+                  <option key={league.id} value={league.id}>
+                    {league.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
-        {/* View Mode Toggle */}
-        {currentLeagueId && (
-          <div className="mb-4">
-            <div className="flex gap-2">
+          {/* View Mode Toggle */}
+          {currentLeagueId && (
+            <div className="flex gap-1.5 sm:gap-2">
               <button
                 onClick={() => setViewMode('total')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   viewMode === 'total'
                     ? 'bg-indigo-600 text-white'
                     : darkMode
@@ -169,11 +169,11 @@ window.Leaderboard = ({
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Totalt XP
+                Totalt
               </button>
               <button
                 onClick={() => setViewMode('monthly')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   viewMode === 'monthly'
                     ? 'bg-indigo-600 text-white'
                     : darkMode
@@ -181,22 +181,19 @@ window.Leaderboard = ({
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Månedens XP
+                Måned
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Month Selector (only in monthly view) */}
         {viewMode === 'monthly' && currentLeagueId && (
-          <div className="mb-4">
-            <label className={`block text-sm font-medium mb-2 ${getTextClassName(darkMode, 'body')}`}>
-              Velg måned
-            </label>
+          <div className="mb-3">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className={`max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              className={`w-full sm:max-w-md px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 darkMode
                   ? 'bg-gray-700 text-white border-gray-600'
                   : 'bg-white text-gray-900 border-gray-300'
@@ -213,7 +210,7 @@ window.Leaderboard = ({
 
         {/* Message if not in any leagues */}
         {userLeagues.length === 0 && (
-          <div className={`mb-4 p-3 border rounded-lg text-sm ${
+          <div className={`p-3 border rounded-lg text-sm ${
             darkMode
               ? 'bg-blue-900 bg-opacity-30 border-blue-700 text-blue-300'
               : 'bg-blue-50 border-blue-200 text-blue-700'

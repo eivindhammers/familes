@@ -112,7 +112,7 @@ window.FriendsManager = ({
   };
 
   return (
-    <div className={`rounded-lg shadow-md p-6 space-y-6 ${getCardClassName(darkMode)}`}>
+    <div className={`rounded-lg shadow-md p-4 sm:p-6 space-y-6 ${getCardClassName(darkMode)}`}>
       <h2 className={`text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>Venner</h2>
       
       {/* Sub-tabs */}
@@ -127,7 +127,7 @@ window.FriendsManager = ({
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          Mine venner {friendIds.length > 0 && `(${friendIds.length})`}
+          Venner {friendIds.length > 0 && `(${friendIds.length})`}
         </button>
         <button
           onClick={() => setActiveSubTab('requests')}
@@ -210,34 +210,34 @@ window.FriendsManager = ({
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 flex-shrink-0">
                         <button
                           onClick={() => toggleFriendBooks(friendId)}
-                          className={`px-3 py-1 text-sm rounded transition ${
-                            darkMode 
-                              ? 'bg-indigo-900 text-indigo-300 hover:bg-indigo-800' 
+                          className={`px-3 py-1.5 sm:py-1 text-sm rounded transition ${
+                            darkMode
+                              ? 'bg-indigo-900 text-indigo-300 hover:bg-indigo-800'
                               : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
                           }`}
                         >
-                          {isExpanded ? 'Skjul bøker' : 'Vis bøker'}
+                          {isExpanded ? 'Skjul' : 'Bøker'}
                         </button>
                         <button
                           onClick={() => onRemoveFriend(friendId)}
-                          className={`px-3 py-1 text-sm rounded transition flex items-center gap-1 ${
-                            darkMode 
-                              ? 'bg-red-900 text-red-300 hover:bg-red-800' 
+                          className={`px-3 py-1.5 sm:py-1 text-sm rounded transition flex items-center justify-center gap-1 ${
+                            darkMode
+                              ? 'bg-red-900 text-red-300 hover:bg-red-800'
                               : 'bg-red-100 text-red-700 hover:bg-red-200'
                           }`}
                         >
                           <Trash2 className="w-4 h-4" />
-                          Fjern
+                          <span className="hidden sm:inline">Fjern</span>
                         </button>
                       </div>
                     </div>
                     
                     {/* Expanded books list */}
                     {isExpanded && (
-                      <div className={`mt-4 ml-12 border-t pt-4 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                      <div className={`mt-4 ml-4 sm:ml-12 border-t pt-4 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                         {friendBooks.length === 0 ? (
                           <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ingen bøker registrert</div>
                         ) : (
