@@ -40,9 +40,9 @@ window.BookForm = ({
             onBlur={() => {
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
+            className={`w-full px-4 py-2 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
           />
-          
+
           {showSuggestions && (suggestions.length > 0 || isSearching) && newBook.title && (
             <div className={`absolute z-10 w-full mt-1 border rounded-lg shadow-xl max-h-60 overflow-y-auto ${
               darkMode 
@@ -81,14 +81,14 @@ window.BookForm = ({
           placeholder="Forfatter"
           value={newBook.author}
           onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
-          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
+          className={`px-4 py-2 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
         />
         <input
           type="number"
           placeholder="Antall sider"
           value={newBook.pages}
           onChange={(e) => setNewBook({ ...newBook, pages: e.target.value })}
-          className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
+          className={`px-4 py-2 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${getInputClassName(darkMode)}`}
         />
       </div>
       <button

@@ -25,7 +25,8 @@ window.Leaderboard = ({
     getCurrentMonth,
     getAvailableCompetitionMonths,
     getMonthLabel,
-    loadHistoricalMonthlyLeaderboard
+    loadHistoricalMonthlyLeaderboard,
+    UserAvatar
   } = window;
   const { useState, useEffect } = React;
 
@@ -126,7 +127,7 @@ window.Leaderboard = ({
 
         {/* League selector + View mode toggle in a compact row on mobile */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-4 mb-3">
-          <div className="flex-1">
+          <div className="flex-1 sm:max-w-xs">
             <label className={`block text-xs sm:text-sm font-medium mb-1 ${getTextClassName(darkMode, 'body')}`}>
               Liga
             </label>
@@ -248,8 +249,8 @@ window.Leaderboard = ({
                       : 'bg-gray-50'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className={`text-2xl font-bold ${
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={`text-2xl font-bold w-10 text-center flex-shrink-0 ${
                     user.rank === 1 ? 'text-yellow-500' :
                     user.rank === 2 ? 'text-gray-400' :
                     user.rank === 3 ? 'text-amber-600' :
@@ -257,20 +258,26 @@ window.Leaderboard = ({
                   }`}>
                     #{user.rank}
                   </div>
-                  <div>
+                  <div className="hidden sm:block flex-shrink-0">
+                    <UserAvatar name={user.name} size="md" />
+                  </div>
+                  <div className="min-w-0">
                     <div className={`font-semibold flex items-center gap-2 ${getTextClassName(darkMode, 'heading')}`}>
-                      {user.name}
+                      <span className="truncate">{user.name}</span>
                       {viewMode === 'total' && getValidatedStreak(user) > 0 && (
-                        <span className="flex items-center gap-1 text-orange-500 text-sm">
+                        <span className="flex items-center gap-1 text-orange-500 text-sm flex-shrink-0">
                           <Flame className="w-4 h-4" />
                           {getValidatedStreak(user)}
                         </span>
                       )}
                     </div>
-                    <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>Level {user.level}</div>
+                    <div className={`text-sm ${getTextClassName(darkMode, 'muted')}`}>
+                      Level {user.level}
+                      <span className="hidden sm:inline"> • {user.totalPages || 0} sider</span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <div className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
                     {getDisplayXP(user)}
                   </div>

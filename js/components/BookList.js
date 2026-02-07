@@ -54,22 +54,22 @@ window.BookList = ({
       ) : (
         <div className="space-y-4">
           {sortedBooks.map(book => (
-            <div key={book.id} className={`border rounded-lg p-4 flex gap-4 ${
-              darkMode 
-                ? 'border-gray-700 bg-gray-700' 
-                : 'border-gray-200'
+            <div key={book.id} className={`border rounded-lg p-4 flex gap-4 transition-shadow hover:shadow-lg ${
+              darkMode
+                ? 'border-gray-700 bg-gray-700 hover:border-gray-600'
+                : 'border-gray-200 hover:border-gray-300'
             }`}>
               <div className="flex-shrink-0">
                 {book.coverUrl ? (
-                  <img 
-                    src={book.coverUrl} 
-                    alt={book.title} 
-                    className="w-16 h-24 object-cover rounded shadow-sm bg-gray-100"
+                  <img
+                    src={book.coverUrl}
+                    alt={book.title}
+                    className="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded shadow-sm bg-gray-100"
                   />
                 ) : (
-                  <div className={`w-16 h-24 rounded flex items-center justify-center ${
-                    darkMode 
-                      ? 'bg-gray-600 text-gray-500' 
+                  <div className={`w-16 h-24 sm:w-20 sm:h-28 rounded flex items-center justify-center ${
+                    darkMode
+                      ? 'bg-gray-600 text-gray-500'
                       : 'bg-gray-100 text-gray-400'
                   }`}>
                     <BookOpen className="w-8 h-8 opacity-50" />

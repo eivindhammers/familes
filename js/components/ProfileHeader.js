@@ -240,6 +240,29 @@ window.ProfileHeader = ({
             <div className={`text-3xl sm:text-4xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{currentProfile.level}</div>
           </div>
         </div>
+        {/* Inline stats row */}
+        <div className={`flex items-center justify-center gap-3 sm:gap-6 mb-2 sm:mb-3 py-1.5 sm:py-2 rounded-lg ${
+          darkMode ? 'bg-white/5' : 'bg-black/5'
+        }`}>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${getValidatedStreak(currentProfile) > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+            <span className={`text-base sm:text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{getValidatedStreak(currentProfile)}</span>
+            <span className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>streak</span>
+          </div>
+          <div className={`h-4 sm:h-6 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className={`text-base sm:text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.longestStreak || 0}</span>
+            <span className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>rekord</span>
+          </div>
+          <div className={`h-4 sm:h-6 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className={`text-base sm:text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</span>
+            <span className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>
+              <span className="sm:hidden">i dag</span>
+              <span className="hidden sm:inline">sider i dag</span>
+            </span>
+          </div>
+        </div>
         <div className={`w-full rounded-full h-3 sm:h-4 mb-1.5 sm:mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
           <div
             className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 sm:h-4 rounded-full transition-all duration-500"
@@ -248,44 +271,6 @@ window.ProfileHeader = ({
         </div>
         <div className={`text-xs sm:text-sm text-center ${getTextClassName(darkMode, 'body')}`}>
           {xpProgress.currentXP} / {xpProgress.neededXP} XP til Level {currentProfile.level + 1}
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
-          darkMode
-            ? 'bg-gradient-to-br from-orange-900 to-red-900'
-            : 'bg-gradient-to-br from-orange-50 to-red-50'
-        }`}>
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-            <Flame className={`w-5 h-5 sm:w-6 sm:h-6 ${getValidatedStreak(currentProfile) > 0 ? (darkMode ? 'text-orange-400' : 'text-orange-500') : darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-            <span className={`text-xl sm:text-2xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{getValidatedStreak(currentProfile)}</span>
-          </div>
-          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>Streak</div>
-        </div>
-
-        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
-          darkMode
-            ? 'bg-gradient-to-br from-yellow-900 to-orange-900'
-            : 'bg-gradient-to-br from-yellow-50 to-orange-50'
-        }`}>
-          <div className={`text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.longestStreak || 0}</div>
-          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>
-            <span className="sm:hidden">Rekord</span>
-            <span className="hidden sm:inline">Beste streak</span>
-          </div>
-        </div>
-
-        <div className={`rounded-lg p-2.5 sm:p-4 text-center ${
-          darkMode
-            ? 'bg-gradient-to-br from-green-900 to-emerald-900'
-            : 'bg-gradient-to-br from-green-50 to-emerald-50'
-        }`}>
-          <div className={`text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1 ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</div>
-          <div className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'body')}`}>
-            <span className="sm:hidden">I dag</span>
-            <span className="hidden sm:inline">Sider i dag ({DAILY_PAGES_GOAL}+ for streak)</span>
-          </div>
         </div>
       </div>
     </div>
