@@ -119,11 +119,11 @@ window.FriendsManager = ({
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setActiveSubTab('friends')}
-          className={`flex-1 px-4 py-2 rounded-lg transition text-sm ${
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-lg transition text-sm ${
             activeSubTab === 'friends'
               ? 'bg-indigo-600 text-white'
-              : darkMode 
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+              : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
@@ -131,11 +131,11 @@ window.FriendsManager = ({
         </button>
         <button
           onClick={() => setActiveSubTab('requests')}
-          className={`flex-1 px-4 py-2 rounded-lg transition text-sm ${
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-lg transition text-sm ${
             activeSubTab === 'requests'
               ? 'bg-indigo-600 text-white'
-              : darkMode 
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+              : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
@@ -143,11 +143,11 @@ window.FriendsManager = ({
         </button>
         <button
           onClick={() => setActiveSubTab('find')}
-          className={`flex-1 px-4 py-2 rounded-lg transition text-sm ${
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2 rounded-lg transition text-sm ${
             activeSubTab === 'find'
               ? 'bg-indigo-600 text-white'
-              : darkMode 
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+              : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
@@ -251,7 +251,7 @@ window.FriendsManager = ({
                                   <img 
                                     src={book.coverUrl.replace('http://', 'https://')} 
                                     alt={book.title}
-                                    className="w-10 h-14 object-cover rounded"
+                                    className="w-10 h-14 sm:w-14 sm:h-20 object-cover rounded"
                                   />
                                 )}
                                 <div className="flex-1">

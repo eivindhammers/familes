@@ -826,66 +826,29 @@ const BookContestApp = () => {
 
         {/* Desktop inline tabs */}
         <div className="hidden sm:flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('myBooks')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition text-base ${
-              activeTab === 'myBooks'
-                ? darkMode
-                  ? 'bg-gray-800 shadow-md text-indigo-400'
-                  : 'bg-white shadow-md text-indigo-600'
-                : darkMode
-                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80'
-                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            Mine bøker
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition text-base ${
-              activeTab === 'leaderboard'
-                ? darkMode
-                  ? 'bg-gray-800 shadow-md text-indigo-400'
-                  : 'bg-white shadow-md text-indigo-600'
-                : darkMode
-                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80'
-                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            Ledertavle
-          </button>
-          <button
-            onClick={() => setActiveTab('friends')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition text-base ${
-              activeTab === 'friends'
-                ? darkMode
-                  ? 'bg-gray-800 shadow-md text-indigo-400'
-                  : 'bg-white shadow-md text-indigo-600'
-                : darkMode
-                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80'
-                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
-            }`}
-          >
-            <UserPlus className="w-5 h-5" />
-            Venner
-          </button>
-          <button
-            onClick={() => setActiveTab('admin')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg transition text-base ${
-              activeTab === 'admin'
-                ? darkMode
-                  ? 'bg-gray-800 shadow-md text-indigo-400'
-                  : 'bg-white shadow-md text-indigo-600'
-                : darkMode
-                  ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80'
-                  : 'bg-white/50 text-gray-600 hover:bg-white/80'
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-            Ligaer
-          </button>
+          {[
+            { key: 'myBooks', icon: BookOpen, label: 'Mine bøker' },
+            { key: 'leaderboard', icon: Users, label: 'Ledertavle' },
+            { key: 'friends', icon: UserPlus, label: 'Venner' },
+            { key: 'admin', icon: Settings, label: 'Ligaer' }
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition text-base border-b-2 ${
+                activeTab === tab.key
+                  ? darkMode
+                    ? 'bg-gray-800 shadow-md text-indigo-400 border-indigo-400'
+                    : 'bg-white shadow-md text-indigo-600 border-indigo-600'
+                  : darkMode
+                    ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-800/80 border-transparent'
+                    : 'bg-white/50 text-gray-600 hover:bg-white/80 border-transparent'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {activeTab === 'myBooks' ? (
