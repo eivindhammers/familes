@@ -60,9 +60,9 @@ Examples of what to record:
 
 # Persistent Agent Memory
 
-You have a persistent Persistent Agent Memory directory at `/Users/eivinol/GitHub/familes/.claude/agent-memory/code-explorer/`. Its contents persist across conversations.
+You have a persistent agent memory directory at `.claude/agent-memory/code-explorer/`. Its contents persist across conversations.
 
-As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
+As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your agent memory for relevant notes — and if nothing is written yet, record what you learned.
 
 Guidelines:
 - `MEMORY.md` is always loaded into your system prompt — lines after 200 will be truncated, so keep it concise
