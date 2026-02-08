@@ -256,7 +256,7 @@ window.ProfileHeader = ({
           </div>
           <div className={`h-4 sm:h-6 w-px ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className={`text-base sm:text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.pagesReadToday || 0}</span>
+            <span className={`text-base sm:text-xl font-bold ${getTextClassName(darkMode, 'heading')}`}>{currentProfile.lastReadDate === window.getTodayString() ? (currentProfile.pagesReadToday || 0) : 0}</span>
             <span className={`text-xs sm:text-sm ${getTextClassName(darkMode, 'muted')}`}>
               <span className="sm:hidden">i dag</span>
               <span className="hidden sm:inline">sider i dag</span>
